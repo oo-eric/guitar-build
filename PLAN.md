@@ -38,27 +38,30 @@ Validate the entire signal chain with one string before committing to a full bui
 
 | Part | Purpose | Est. Price | Source | Acquired |
 |------|---------|-----------|--------|----------|
-| Teensy 4.1 (with pins) | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 18 analog pins | ~$45 | [PJRC](https://www.pjrc.com/store/teensy41.html) / [Adafruit](https://www.adafruit.com/product/4622) / [SparkFun](https://www.sparkfun.com/teensy-4-1.html) | [ ] |
+| Teensy 4.1 (with pins) | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 18 analog pins | ~$45 | [Adafruit](https://www.adafruit.com/product/4622) | [x] |
 | Ubertar Little Torpedo (single) | Single-string pickup | $50 | [Ubertar](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html) | [ ] |
-| 1/4" mono jack | Connect pickup to circuit | ~$3 | Any electronics supplier | [ ] |
+| 1/4" mono jack | Connect pickup to circuit | ~$3 | DigiKey / Mouser | [ ] |
 
 ### Prototyping Supplies
 
-| Part | Purpose | Est. Price | Acquired |
-|------|---------|-----------|----------|
-| Breadboard (full size) | Build circuit without soldering | ~$7 | [ ] |
-| Jumper wire kit | Breadboard connections | ~$7 | [ ] |
-| USB-C cable | Power + MIDI data to computer | ~$5 | [ ] |
-| Single guitar string + tuning peg | Test source (mount on scrap wood) | ~$5 | [ ] |
+| Part | Purpose | Est. Price | Source | Acquired |
+|------|---------|-----------|--------|----------|
+| Breadboard (full size, 830 pts) | Build circuit without soldering | $5.95 | [Adafruit](https://www.adafruit.com/product/239) | [x] |
+| Jumper wire bundle | Breadboard connections | ~$7 | [Adafruit](https://www.adafruit.com/product/153) | [x] |
+| USB-C to micro-USB cable | Power + MIDI data to computer (Teensy uses micro-USB) | ~$5 | Any | [x] |
+| Single guitar string + tuning peg | Test source (mount on scrap wood) | ~$5 | Any music store | [ ] |
 
 ### Signal Conditioning
 
-| Part | Purpose | Est. Price | Acquired |
-|------|---------|-----------|----------|
-| TL072 op-amp | Buffer/amplify pickup signal | ~$1 | [ ] |
-| Resistor assortment (1/4W) | Biasing and gain setting | ~$5 | [ ] |
-| Capacitor assortment (ceramic + electrolytic) | DC blocking, filtering, decoupling | ~$5 | [ ] |
-| 9V battery + snap connector | Clean op-amp power (isolated from digital noise) | ~$3 | [ ] |
+| Part | Purpose | Est. Price | Source | Acquired |
+|------|---------|-----------|--------|----------|
+| TL072 op-amp (x2) | Buffer/amplify pickup signal | ~$2 | DigiKey / Mouser | [ ] |
+| 10K resistors (25 pack) | Voltage divider biasing | $0.75 | [Adafruit](https://www.adafruit.com/product/2784) | [x] |
+| 100K resistors (25 pack) | Op-amp gain/feedback | $0.75 | [Adafruit](https://www.adafruit.com/product/2787) | [x] |
+| 0.1uF ceramic capacitors (10 pack) | Decoupling | $0.95 | [Adafruit](https://www.adafruit.com/product/753) | [x] |
+| 10uF electrolytic capacitors (10 pack) | DC blocking, power filtering | $1.50 | [Adafruit](https://www.adafruit.com/product/2195) | [x] |
+| 9V battery clip | Clean op-amp power (isolated from digital noise) | $3.95 | [Adafruit](https://www.adafruit.com/product/80) | [ ] |
+| 9V battery | Power for op-amp | ~$3 | Any | [ ] |
 
 **Estimated Phase 1 total: ~$135**
 
