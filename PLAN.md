@@ -49,6 +49,7 @@ Validate the entire signal chain with one string before committing to a full bui
 | Breadboard (full size, 830 pts) | Build circuit without soldering | $5.95 | [Adafruit](https://www.adafruit.com/product/239) | [x] |
 | Jumper wire bundle | Breadboard connections | ~$7 | [Adafruit](https://www.adafruit.com/product/153) | [x] |
 | USB-C to micro-USB cable | Power + MIDI data to computer (Teensy uses micro-USB) | ~$5 | Any | [x] |
+| Male header pins (breakaway strip, 2x40) | Solder onto Teensy for breadboard mounting | ~$2 | DigiKey / Adafruit | [ ] |
 | Single guitar string + tuning peg | Test source (mount on scrap wood) | ~$5 | Any music store | [ ] |
 
 ### Signal Conditioning

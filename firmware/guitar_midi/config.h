@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arduino.h>
+
 // --- ADC ---
 constexpr int      ADC_PIN            = A0;
 constexpr int      ADC_RESOLUTION     = 12;       // 12-bit (0-4095)

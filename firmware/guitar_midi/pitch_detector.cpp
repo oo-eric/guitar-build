@@ -67,9 +67,6 @@ void PitchDetector::cumulativeMeanNormalizedDifference() {
 
 int PitchDetector::absoluteThreshold() {
     int halfWindow = YIN_BUFFER_SIZE / 2;
-    int bestTau = -1;
-    float bestVal = YIN_THRESHOLD;
-
     // Search within the valid tau range for our frequency bounds
     int tauMin = (YIN_TAU_MIN > 1) ? YIN_TAU_MIN : 1;
     int tauMax = (YIN_TAU_MAX < halfWindow) ? YIN_TAU_MAX : halfWindow - 1;

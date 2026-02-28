@@ -1,5 +1,6 @@
 #include "midi_output.h"
 #include <math.h>
+#include <usb_midi.h>
 
 MidiOutput::MidiOutput(int channel)
     : channel(channel)
