@@ -23,7 +23,7 @@ constexpr int      YIN_TAU_MIN        = (int)(ADC_SAMPLE_RATE / MAX_FREQUENCY); 
 constexpr int      YIN_TAU_MAX        = (int)(ADC_SAMPLE_RATE / MIN_FREQUENCY); // ~267
 
 // --- Onset / offset detection ---
-constexpr float    ONSET_THRESHOLD    = 0.05f;    // RMS threshold for note-on
+constexpr float    ONSET_THRESHOLD    = 0.25f;    // RMS threshold for note-on (tune with real signal)
 constexpr float    OFFSET_THRESHOLD   = 0.01f;    // RMS threshold for note-off
 constexpr int      ONSET_WINDOW       = 64;       // Samples per RMS calculation
 constexpr uint32_t OFFSET_HOLD_MS     = 80;       // Min note duration before allowing note-off

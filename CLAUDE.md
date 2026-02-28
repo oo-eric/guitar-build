@@ -5,7 +5,14 @@ A DIY guitar with per-string pickups and a Teensy 4.1 for real-time pitch-to-MID
 ## Project Structure
 
 - `PLAN.md` — phased build plan, parts list, signal chain, and technical notes
-- `firmware/` — Teensy 4.1 Arduino/Teensyduino firmware
+- `BUFFER_CIRCUIT.md` — TL072 buffer circuit schematic, breadboard layout, and troubleshooting
+- `firmware/guitar_midi/` — Teensy 4.1 Arduino/Teensyduino firmware
+  - `config.h` — all tunable constants (thresholds, sample rate, MIDI settings)
+  - `adc_sampler.h/.cpp` — timer-driven 20kHz ADC sampling with ring buffer
+  - `onset_detector.h/.cpp` — note on/off state machine (RMS-based)
+  - `pitch_detector.h/.cpp` — YIN pitch detection algorithm
+  - `midi_output.h/.cpp` — MPE MIDI output with pitch bend tracking
+  - `guitar_midi.ino` — main entry point and orchestration loop
 
 ## Tech Stack
 
@@ -21,6 +28,8 @@ A DIY guitar with per-string pickups and a Teensy 4.1 for real-time pitch-to-MID
 - Do not power Teensy via VIN and USB simultaneously without cutting the VIN-VUSB trace
 - Target pitch detection latency: <15ms for upper strings
 - ADC: starting with onboard 12-bit; may upgrade to PCM1808 (24-bit I2S) if needed
+- Arduino IDE USB Type must be set to "Serial + MIDI" for usbMIDI to compile
+- `usbMIDI` is only available in `.ino` files or via `#include <usb_midi.h>` in `.cpp` files
 
 ## Future Plans
 

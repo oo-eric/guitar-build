@@ -61,7 +61,7 @@ Validate the entire signal chain with one string before committing to a full bui
 | 100K resistors (25 pack) | Op-amp gain/feedback | $0.75 | [Adafruit](https://www.adafruit.com/product/2787) | [x] |
 | 0.1uF ceramic capacitors (10 pack) | Decoupling | $0.95 | [Adafruit](https://www.adafruit.com/product/753) | [x] |
 | 10uF electrolytic capacitors (10 pack) | DC blocking, power filtering | $1.50 | [Adafruit](https://www.adafruit.com/product/2195) | [x] |
-| 9V battery clip | Clean op-amp power (isolated from digital noise) | $3.95 | [Adafruit](https://www.adafruit.com/product/80) | [ ] |
+| 9V battery snap connector (wire leads) | Clean op-amp power (isolated from digital noise) | ~$2 | DigiKey / Amazon | [ ] |
 | 9V battery | Power for op-amp | ~$3 | Any | [ ] |
 
 **Estimated Phase 1 total: ~$135**
