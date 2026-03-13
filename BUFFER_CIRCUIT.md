@@ -2,47 +2,89 @@
 
 Single-channel buffer/amplifier between the pickup and Teensy A0.
 
-## Schematic
+## Full Schematic
 
 ```
-                          +9V Rail
-                            |
-                            |
-                     [0.1uF ceramic]  (power decoupling, close to TL072)
-                            |
-                           GND
+                              +9V (battery)
+                                |
+                  +-------------+-------------+
+                  |                           |
+               [10uF]  bulk              [0.1uF]  decoupling
+               filtering                 (close to chip)
+                  |                           |
+                 GND                         GND
 
-                          +9V Rail
-                            |
-                          pin 8
-                     +------+------+
-                     |             |
-   Pickup        pin 2           pin 1
-   Hot ----[10uF]----> -IN        OUT ---+---[10uF]---> Teensy A0
-                     |             |     |
-                pin 3|             |     |
-                  +IN|   TL072A    |     |
-                     |             |     |
-                     +------+------+     |
-                            |            |
-                          pin 4         [100K]  (feedback)
-                            |            |
-                           GND           |
-                            |     pin 2 -IN <---+
-                            |
 
-                     Bias Network
-                     (connects to TL072A pin 3, +IN)
+                              +9V
+                               |
+                             pin 8 (V+)
+                        +------+------+
+                        |             |
+   77HC Pickup      pin 2           pin 1
+   Hot ---[10uF]----> -IN    TL072A   OUT ---[10uF]---+---> Teensy A0
+   (no stripe)  +     |             |    +            |
+                        |             |                |
+                   pin 3|             |               [10K]
+                    +IN |             |                |
+                        |             |          3.3V (Teensy)
+                        +------+------+
+                               |
+                             pin 4 (V-)
+                               |
+                              GND
 
-                          3.3V (from Teensy)
-                            |
-                          [10K]
-                            |
-                            +--------> TL072A pin 3 (+IN)
-                            |
-                          [10K]
-                            |
-                           GND
+
+   Feedback (pin 1 to pin 2):
+
+   pin 1 (OUT) ----[100K]---- pin 2 (-IN)
+
+
+   Input Bias Divider (to pin 3, +IN):
+
+          3.3V (Teensy)
+               |
+             [10K]
+               |
+               +--------> pin 3 (+IN)
+               |
+             [10K]
+               |
+              GND
+
+         Midpoint = 1.65V
+
+
+   Output Bias Divider (to Teensy A0):
+
+          3.3V (Teensy)
+               |
+             [10K]
+               |
+   [10uF]---->-+--------> Teensy A0
+   (from         |
+   pin 1 OUT)  [10K]
+               |
+              GND
+
+         Midpoint = 1.65V
+
+
+   Grounds (all connected):
+   - 9V battery negative
+   - TL072 pin 4
+   - Teensy GND
+   - Pickup ground (white stripe wire)
+   - Both voltage divider bottoms
+```
+
+### Signal Flow Summary
+
+```
+77HC Pickup ──> [10uF cap] ──> TL072 pin 2 (-IN)
+                                      |
+                               [100K feedback] from pin 1
+                                      |
+                               TL072 pin 1 (OUT) ──> [10uF cap] ──> voltage divider ──> Teensy A0
 ```
 
 ## How It Works
@@ -120,32 +162,46 @@ We only use channel A (pins 1-3) for Phase 1. Channel B (pins 5-7) is available 
 
 ## Breadboard Layout
 
+830-point breadboard. All signal components on the **bottom side** of the center channel.
+
 ```
-+9V Rail  =========================================
-GND Rail  =========================================
++9V Rail (top)  ====================================================
+GND Rail (top)  ====================================================
 
-  [9V snap] red  --> +9V rail
-  [9V snap] black --> GND rail
+  Teensy: starts at col 3, straddling center channel
+  TL072:  starts at col 55, straddling center channel
 
-  Teensy GND pin --> GND rail
-  Teensy 3.3V pin --> 3.3V rail (or direct to divider)
-
-  Row 1:  TL072 straddling center channel (pin 1 top-left)
-  Row 2:  0.1uF ceramic cap from pin 8 row to pin 4 row (decoupling)
-  Row 3:  10K + 10K voltage divider from 3.3V to GND, midpoint to pin 3
-  Row 4:  100K feedback from pin 1 row to pin 2 row
-  Row 5:  10uF input cap from pickup jack to pin 2 row
-  Row 6:  10uF output cap from pin 1 row toward A0
-  Row 7:  10K + 10K output bias divider, midpoint to A0
-
-  Pickup hot --> input cap --> pin 2
-  Pickup ground --> GND rail
+  TL072 pin mapping (as placed):
+      Top side:    8(col55)  7(col56)  6(col57)  5(col58)
+      Bottom side: 1(col55)  2(col56)  3(col57)  4(col58)
 ```
+
+### Wiring (all on bottom side unless noted)
+
+| Connection                   | From               | To                 | Notes                               |
+| ---------------------------- | ------------------ | ------------------ | ----------------------------------- |
+| 9V battery red               | far left           | + rail (top)       |                                     |
+| 9V battery black             | far left           | - rail (top)       |                                     |
+| TL072 V+                     | col 55 top side    | + rail             | jumper wire                         |
+| TL072 GND                    | col 58 bottom      | - rail             | jumper wire                         |
+| Power decoupling             | + rail             | - rail             | 0.1uF ceramic cap, near TL072 wires |
+| Teensy GND                   | Teensy GND pin     | - rail             | jumper wire                         |
+| Input bias: 3.3V to midpoint | Teensy 3.3V        | col 35             | 10K resistor                        |
+| Input bias: midpoint to GND  | col 35             | - rail             | 10K resistor (or jumper + resistor) |
+| Bias to op-amp               | col 35             | col 57 (pin 3 +IN) | jumper wire                         |
+| Feedback                     | col 55 (pin 1)     | col 56 (pin 2)     | 100K resistor                       |
+| Input cap                    | col 45             | col 56 (pin 2 -IN) | 10uF electrolytic, + leg at col 56  |
+| Output cap                   | col 55 (pin 1)     | col 41             | 10uF electrolytic, + leg at col 55  |
+| Output bias: 3.3V to mid     | col 37 (from 3.3V) | col 41             | 10K resistor                        |
+| Output bias: mid to GND      | col 41             | - rail             | 10K resistor (or jumper + resistor) |
+| ADC input                    | col 41             | Teensy A0          | jumper wire                         |
+| Pickup hot (no stripe)       | pickup             | col 45             | direct into breadboard              |
+| Pickup ground (white stripe) | pickup             | - rail             | direct into breadboard              |
 
 ## Parts Used (Phase 1)
 
 | Part                        | Quantity | Purpose                                          |
-|-----------------------------|----------|--------------------------------------------------|
+| --------------------------- | -------- | ------------------------------------------------ |
 | TL072 (DIP-8)               | 1        | Buffer/amplifier (using channel A only)          |
 | 10K resistors               | 4        | Two voltage dividers (input bias + output bias)  |
 | 100K resistor               | 1        | Feedback resistor                                |

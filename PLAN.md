@@ -29,6 +29,13 @@ Validate the entire signal chain with one string before committing to a full bui
 
 - Mount pickups and electronics into an actual guitar body
 - Final wiring, enclosure, and physical build
+- 1/4" analog output jack (split from buffer circuit)
+
+### Phase 4 — Wireless / Stage Connectivity (TBD)
+
+- Teensy 4.0 does not have native Ethernet like the 4.1 — explore alternatives
+- Options: USB over long cable, wireless MIDI (BLE), or external Ethernet adapter
+- Eliminates USB cable length limitations and need for extender boxes
 
 ---
 
@@ -36,33 +43,33 @@ Validate the entire signal chain with one string before committing to a full bui
 
 ### Core Components
 
-| Part | Purpose | Est. Price | Source | Acquired |
-|------|---------|-----------|--------|----------|
-| Teensy 4.1 (with pins) | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 18 analog pins | ~$45 | [Adafruit](https://www.adafruit.com/product/4622) | [x] |
-| Ubertar Little Torpedo (single) | Single-string pickup | $50 | [Ubertar](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html) | [ ] |
-| 1/4" mono jack | Connect pickup to circuit | ~$3 | DigiKey / Mouser | [ ] |
+| Part                          | Purpose                                                                                               | Est. Price | Source                                                                    | Acquired |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------- | -------- |
+| Teensy 4.0 (with pins)        | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 14 analog pins                                | ~$30       | [Adafruit](https://www.adafruit.com/product/4323)                         | [x]      |
+| Ubertar 77HC Pickups (single) | Single-string pickup (upgraded from HC series by Ubertar — more powerful, better sound, more durable) | $50        | [Ubertar](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html) | [x]      |
+| 1/4" mono jack                | Connect pickup to circuit                                                                             | ~$3        | DigiKey / Mouser                                                          | [ ]      |
 
 ### Prototyping Supplies
 
-| Part | Purpose | Est. Price | Source | Acquired |
-|------|---------|-----------|--------|----------|
-| Breadboard (full size, 830 pts) | Build circuit without soldering | $5.95 | [Adafruit](https://www.adafruit.com/product/239) | [x] |
-| Jumper wire bundle | Breadboard connections | ~$7 | [Adafruit](https://www.adafruit.com/product/153) | [x] |
-| USB-C to micro-USB cable | Power + MIDI data to computer (Teensy uses micro-USB) | ~$5 | Any | [x] |
-| Male header pins (breakaway strip, 2x40) | Solder onto Teensy for breadboard mounting | ~$2 | DigiKey / Adafruit | [ ] |
-| Single guitar string + tuning peg | Test source (mount on scrap wood) | ~$5 | Any music store | [ ] |
+| Part                                     | Purpose                                               | Est. Price | Source                                           | Acquired |
+| ---------------------------------------- | ----------------------------------------------------- | ---------- | ------------------------------------------------ | -------- |
+| Breadboard (full size, 830 pts)          | Build circuit without soldering                       | $5.95      | [Adafruit](https://www.adafruit.com/product/239) | [x]      |
+| Jumper wire bundle                       | Breadboard connections                                | ~$7        | [Adafruit](https://www.adafruit.com/product/153) | [x]      |
+| USB-C to micro-USB cable                 | Power + MIDI data to computer (Teensy uses micro-USB) | ~$5        | Any                                              | [x]      |
+| Male header pins (breakaway strip, 2x40) | Solder onto Teensy for breadboard mounting            | ~$2        | DigiKey / Adafruit                               | [x]      |
+| Single guitar string + tuning peg        | Test source (mount on scrap wood)                     | ~$5        | Any music store                                  | [x]      |
 
 ### Signal Conditioning
 
-| Part | Purpose | Est. Price | Source | Acquired |
-|------|---------|-----------|--------|----------|
-| TL072 op-amp (x2) | Buffer/amplify pickup signal | ~$2 | DigiKey / Mouser | [ ] |
-| 10K resistors (25 pack) | Voltage divider biasing | $0.75 | [Adafruit](https://www.adafruit.com/product/2784) | [x] |
-| 100K resistors (25 pack) | Op-amp gain/feedback | $0.75 | [Adafruit](https://www.adafruit.com/product/2787) | [x] |
-| 0.1uF ceramic capacitors (10 pack) | Decoupling | $0.95 | [Adafruit](https://www.adafruit.com/product/753) | [x] |
-| 10uF electrolytic capacitors (10 pack) | DC blocking, power filtering | $1.50 | [Adafruit](https://www.adafruit.com/product/2195) | [x] |
-| 9V battery snap connector (wire leads) | Clean op-amp power (isolated from digital noise) | ~$2 | DigiKey / Amazon | [ ] |
-| 9V battery | Power for op-amp | ~$3 | Any | [ ] |
+| Part                                   | Purpose                                          | Est. Price | Source                                            | Acquired |
+| -------------------------------------- | ------------------------------------------------ | ---------- | ------------------------------------------------- | -------- |
+| TL072 op-amp (x2)                      | Buffer/amplify pickup signal                     | ~$2        | DigiKey / Mouser                                  | [x]      |
+| 10K resistors (25 pack)                | Voltage divider biasing                          | $0.75      | [Adafruit](https://www.adafruit.com/product/2784) | [x]      |
+| 100K resistors (25 pack)               | Op-amp gain/feedback                             | $0.75      | [Adafruit](https://www.adafruit.com/product/2787) | [x]      |
+| 0.1uF ceramic capacitors (10 pack)     | Decoupling                                       | $0.95      | [Adafruit](https://www.adafruit.com/product/753)  | [x]      |
+| 10uF electrolytic capacitors (10 pack) | DC blocking, power filtering                     | $1.50      | [Adafruit](https://www.adafruit.com/product/2195) | [x]      |
+| 9V battery snap connector (wire leads) | Clean op-amp power (isolated from digital noise) | ~$2        | DigiKey / Amazon                                  | [x]      |
+| 9V battery                             | Power for op-amp                                 | ~$3        | Any                                               | [x]      |
 
 **Estimated Phase 1 total: ~$135**
 
@@ -73,11 +80,11 @@ Validate the entire signal chain with one string before committing to a full bui
 ```
 Guitar String
     |
-[Little Torpedo Pickup]
+[77HC Pickup]
     |
-[1/4" Jack] --> [TL072 Buffer Circuit] --> [Teensy 4.1 Analog Pin]
+[1/4" Jack] --> [TL072 Buffer Circuit] --> [Teensy 4.0 Analog Pin]
                  (on breadboard)                   |
-                                             [Teensy 4.1]
+                                             [Teensy 4.0]
                                                    |
                                              [USB-C to Computer]
                                                    |
@@ -121,6 +128,17 @@ Using MPE standard — each string gets its own MIDI channel:
 - Per-channel pitch bend for string bends
 - Per-channel CC for vibrato / pressure
 
+### Audio Output Strategy
+
+**Dual output — USB audio + 1/4" analog jack:**
+
+The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC for pitch detection (and optionally USB audio), the other goes straight to a standard 1/4" output jack for a traditional analog signal.
+
+- **1/4" jack:** Zero-latency analog output, works without a computer (amps, pedalboards, DI boxes)
+- **USB audio:** Teensy supports "Serial + MIDI + Audio" USB type, allowing combined MIDI + raw audio over a single USB cable. The DAW sees both a MIDI instrument and an audio input from one device.
+
+**Decision point:** Evaluate USB audio in a later phase. The signal split at the buffer is simple to add during the physical build (Phase 3). USB audio firmware requires the Teensy Audio library and changing the USB type setting.
+
 ---
 
 ## Research & References
@@ -132,6 +150,12 @@ Using MPE standard — each string gets its own MIDI channel:
 - [PCM1808 Datasheet (TI)](https://www.ti.com/lit/ds/symlink/pcm1808.pdf)
 - [PCM1808 Breakout Modules](https://www.diymore.cc/products/pcm1808-105db-snr-audio-stereo-adc-single-ended-analog-input-decoder-24bit-amplifier-board-player-diy-electronic-diy-kit)
 - [MIDI Polyphonic Expression (MPE) Spec](https://www.midi.org/midi-articles/midi-polyphonic-expression-mpe)
+
+## Future Exploration
+
+### MPU-6050 Accelerometer/Gyroscope (HW-123)
+
+6-axis motion sensor (3-axis accelerometer + 3-axis gyroscope) that communicates over I2C. Could be mounted on the guitar body or neck to generate MIDI CC data from physical gestures — tilt for filter sweeps, shake for vibrato, orientation for effect parameters, etc. Teensy 4.0 has multiple I2C buses so integration should be straightforward.
 
 ## Notes
 
