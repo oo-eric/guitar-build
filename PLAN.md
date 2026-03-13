@@ -44,11 +44,11 @@ Validate the entire signal chain with one string before committing to a full bui
 
 ### Core Components
 
-| Part                          | Purpose                                                                                               | Est. Price | Source                                                                    | Acquired |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------- | -------- |
-| Teensy 4.0 (with pins)        | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 14 analog pins                                | ~$30       | [Adafruit](https://www.adafruit.com/product/4323)                         | [x]      |
-| Ubertar 77HC Pickups (single) | Single-string pickup (upgraded from HC series by Ubertar — more powerful, better sound, more durable) | $50        | [Ubertar](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html) | [x]      |
-| 1/4" mono jack                | Connect pickup to circuit                                                                             | ~$3        | DigiKey / Mouser                                                          | [ ]      |
+| Part                      | Purpose                                                                                               | Est. Price | Source                                                                    | Acquired |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------- | -------- |
+| Teensy 4.0 (with pins)    | 600MHz ARM Cortex-M7, USB MIDI built-in, 2x 12-bit ADC, 14 analog pins                                | ~$30       | [Adafruit](https://www.adafruit.com/product/4323)                         | [x]      |
+| Ubertar 77HC Pickups (x6) | Single-string pickup (upgraded from HC series by Ubertar — more powerful, better sound, more durable) | $50        | [Ubertar](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html) | [x]      |
+| 1/4" mono jack            | Connect pickup to circuit                                                                             | ~$3        | DigiKey / Mouser                                                          | [ ]      |
 
 ### Prototyping Supplies
 
@@ -78,15 +78,14 @@ Switching from TL072 (needs 7V+) to MCP6002 (runs on 1.8-6V, rail-to-rail). Powe
 
 | Part                                   | Purpose                                              | Est. Price | Source         | Acquired |
 | -------------------------------------- | ---------------------------------------------------- | ---------- | -------------- | -------- |
-| MCP6002 (DIP-8) x3                    | Dual op-amp, 2 channels each, covers all 6 strings   | ~$3        | DigiKey/Mouser | [ ]      |
-| 2.2K resistors (pack)                 | Gain resistor (~46x with 100K feedback)               | ~$1        | DigiKey/Mouser | [ ]      |
-| 1K resistors (pack)                   | Alternate gain resistor (~101x) if 46x isn't enough   | ~$1        | DigiKey/Mouser | [ ]      |
-| 10K resistors (25 pack)               | Voltage dividers — need 24 more (4 per channel)       | $0.75      | Adafruit       | [ ]      |
-| 100K resistors                        | Feedback — need 6 (one per channel), may have enough  | —          | —              | [x]      |
-| 10uF electrolytic capacitors (10 pack)| DC blocking — need 12 more (2 per channel)            | $1.50      | Adafruit       | [ ]      |
-| 0.1uF ceramic capacitors              | Decoupling — need 3 (one per chip), may have enough   | —          | —              | [x]      |
-| Second breadboard (830 pts)           | 6 channels won't fit on one board                     | $5.95      | Adafruit       | [ ]      |
-| Ubertar 77HC Pickups x5               | Remaining 5 single-string pickups                     | $250       | Ubertar        | [ ]      |
+| MCP6002 (DIP-8) x3                     | Dual op-amp, 2 channels each, covers all 6 strings   | ~$3        | DigiKey/Mouser | [ ]      |
+| 2.2K resistors (pack)                  | Gain resistor (~46x with 100K feedback)              | ~$1        | DigiKey/Mouser | [ ]      |
+| 1K resistors (pack)                    | Alternate gain resistor (~101x) if 46x isn't enough  | ~$1        | DigiKey/Mouser | [ ]      |
+| 10K resistors (25 pack)                | Voltage dividers — need 24 more (4 per channel)      | $0.75      | Adafruit       | [ ]      |
+| 100K resistors                         | Feedback — need 6 (one per channel), may have enough | —          | —              | [x]      |
+| 10uF electrolytic capacitors (10 pack) | DC blocking — need 12 more (2 per channel)           | $1.50      | Adafruit       | [ ]      |
+| 0.1uF ceramic capacitors               | Decoupling — need 3 (one per chip), may have enough  | —          | —              | [x]      |
+| Second breadboard (830 pts)            | 6 channels won't fit on one board                    | $5.95      | Adafruit       | [ ]      |
 
 **Estimated Phase 2 order: ~$265**
 
