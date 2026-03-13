@@ -6,7 +6,7 @@ A DIY guitar with per-string pickups and a Teensy 4.0 for real-time pitch-to-MID
 
 - `PLAN.md` — phased build plan, parts list, signal chain, and technical notes
 - `BUFFER_CIRCUIT.md` — TL072 buffer circuit schematic, breadboard layout, and troubleshooting
-- `firmware/adc_test/` — simple ADC test sketch for validating the buffer circuit
+- `firmware/adc_test/` — ADC + pitch detection test sketch (autocorrelation-based)
 - `firmware/guitar_midi/` — Teensy 4.0 Arduino/Teensyduino firmware
   - `config.h` — all tunable constants (thresholds, sample rate, MIDI settings)
   - `adc_sampler.h/.cpp` — timer-driven 20kHz ADC sampling with ring buffer
@@ -38,4 +38,4 @@ A DIY guitar with per-string pickups and a Teensy 4.0 for real-time pitch-to-MID
 
 ## Current Phase
 
-Phase 1 — Single string proof of concept. Buffer circuit is wired on breadboard, currently testing ADC readings to validate the signal chain before moving to pitch detection.
+Phase 1 — Single string proof of concept. Buffer circuit is wired on breadboard with gain stage (~21-31x via parallel 10K resistors). Pitch detection (autocorrelation) is working on the Teensy 4.0.

@@ -120,6 +120,8 @@ The 100K feedback resistor from the output (pin 1) back to the inverting input (
 
 Start with unity gain (100K feedback only, no resistor to bias). If the signal is too small on the ADC, add the gain resistor.
 
+**What we found:** Unity gain and even 11x was not enough for the 77HC single-string pickup. Multiple 10K resistors in parallel were needed to bring the gain high enough for reliable pitch detection. The feedback was also doubled to 200K (two 100K in series) for additional gain. High strings need significantly more gain than low strings.
+
 ### 4. Output Stage (DC Blocking)
 
 The 10uF electrolytic capacitor between the op-amp output and Teensy A0 blocks the 1.65V DC bias, passing only the AC signal. But wait — the Teensy also needs a DC bias at its input.

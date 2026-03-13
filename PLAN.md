@@ -30,6 +30,7 @@ Validate the entire signal chain with one string before committing to a full bui
 - Mount pickups and electronics into an actual guitar body
 - Final wiring, enclosure, and physical build
 - 1/4" analog output jack (split from buffer circuit)
+- USB-C breakout board mounted on body — wire VBUS, GND, D+, D- to Teensy USB pads, replacing the micro-USB connector
 
 ### Phase 4 — Wireless / Stage Connectivity (TBD)
 
@@ -59,7 +60,7 @@ Validate the entire signal chain with one string before committing to a full bui
 | Male header pins (breakaway strip, 2x40) | Solder onto Teensy for breadboard mounting            | ~$2        | DigiKey / Adafruit                               | [x]      |
 | Single guitar string + tuning peg        | Test source (mount on scrap wood)                     | ~$5        | Any music store                                  | [x]      |
 
-### Signal Conditioning
+### Signal Conditioning (Phase 1 — original, TL072 + 9V battery)
 
 | Part                                   | Purpose                                          | Est. Price | Source                                            | Acquired |
 | -------------------------------------- | ------------------------------------------------ | ---------- | ------------------------------------------------- | -------- |
@@ -71,7 +72,23 @@ Validate the entire signal chain with one string before committing to a full bui
 | 9V battery snap connector (wire leads) | Clean op-amp power (isolated from digital noise) | ~$2        | DigiKey / Amazon                                  | [x]      |
 | 9V battery                             | Power for op-amp                                 | ~$3        | Any                                               | [x]      |
 
-**Estimated Phase 1 total: ~$135**
+### Signal Conditioning (Phase 2 — upgraded, MCP6002 + Teensy 3.3V power)
+
+Switching from TL072 (needs 7V+) to MCP6002 (runs on 1.8-6V, rail-to-rail). Powered directly from Teensy 3.3V — no battery needed.
+
+| Part                                   | Purpose                                              | Est. Price | Source         | Acquired |
+| -------------------------------------- | ---------------------------------------------------- | ---------- | -------------- | -------- |
+| MCP6002 (DIP-8) x3                    | Dual op-amp, 2 channels each, covers all 6 strings   | ~$3        | DigiKey/Mouser | [ ]      |
+| 2.2K resistors (pack)                 | Gain resistor (~46x with 100K feedback)               | ~$1        | DigiKey/Mouser | [ ]      |
+| 1K resistors (pack)                   | Alternate gain resistor (~101x) if 46x isn't enough   | ~$1        | DigiKey/Mouser | [ ]      |
+| 10K resistors (25 pack)               | Voltage dividers — need 24 more (4 per channel)       | $0.75      | Adafruit       | [ ]      |
+| 100K resistors                        | Feedback — need 6 (one per channel), may have enough  | —          | —              | [x]      |
+| 10uF electrolytic capacitors (10 pack)| DC blocking — need 12 more (2 per channel)            | $1.50      | Adafruit       | [ ]      |
+| 0.1uF ceramic capacitors              | Decoupling — need 3 (one per chip), may have enough   | —          | —              | [x]      |
+| Second breadboard (830 pts)           | 6 channels won't fit on one board                     | $5.95      | Adafruit       | [ ]      |
+| Ubertar 77HC Pickups x5               | Remaining 5 single-string pickups                     | $250       | Ubertar        | [ ]      |
+
+**Estimated Phase 2 order: ~$265**
 
 ---
 
@@ -82,11 +99,11 @@ Guitar String
     |
 [77HC Pickup]
     |
-[1/4" Jack] --> [TL072 Buffer Circuit] --> [Teensy 4.0 Analog Pin]
-                 (on breadboard)                   |
+[1/4" Jack] --> [MCP6002 Buffer Circuit] --> [Teensy 4.0 Analog Pin]
+                 (powered by Teensy 3.3V)          |
                                              [Teensy 4.0]
                                                    |
-                                             [USB-C to Computer]
+                                             [micro-USB to Computer]
                                                    |
                                            DAW sees MIDI device
 ```
@@ -144,7 +161,7 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 ## Research & References
 
 - [Ubertar Hexaphonic Pickups](https://ubertar.com/hexaphonic/one_and_two_string_pickups.html)
-- [PJRC Teensy 4.1](https://www.pjrc.com/store/teensy41.html)
+- [PJRC Teensy 4.0](https://www.pjrc.com/store/teensy40.html)
 - [Teensy ADC Library](https://github.com/pedvide/ADC)
 - [Teensy ADC Documentation](https://www.pjrc.com/teensy/adc.html)
 - [PCM1808 Datasheet (TI)](https://www.ti.com/lit/ds/symlink/pcm1808.pdf)
@@ -159,4 +176,6 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 
 ## Notes
 
-_Add build notes, observations, and decisions here as the project progresses._
+- **Op-amp change:** TL072 requires 7V+ and a 9V battery that drains fast (especially rechargeable). Switching to MCP6002 which runs on 3.3V from the Teensy directly — no battery needed.
+- **Gain findings:** 77HC pickup signal is very weak for single strings. Unity gain and 11x were not enough. Need ~46-101x gain depending on string. High strings need more gain than low strings.
+- **USB-C breakout board:** Available with VBUS, GND, CC1, CC2, D+, D- pins. Could be used for USB-C connector on guitar body in Phase 3 (passthrough to Teensy micro-USB).
