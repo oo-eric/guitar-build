@@ -32,14 +32,14 @@ Source: https://www.pjrc.com/store/teensy40.html
 
 ## Communication
 
-| Protocol | Count | Notes |
-|----------|-------|-------|
-| Serial/UART | 7 | Independent ports with FIFOs |
-| SPI | 3 | First has FIFO |
-| I2C | 3 | 100/400/1000 kbit/sec |
-| CAN | 3 | 1 with CAN FD |
-| I2S/TDM | 2 | Up to 8ch I2S or 16ch TDM |
-| S/PDIF | 1 | Independent from I2S |
+| Protocol    | Count | Notes                        |
+| ----------- | ----- | ---------------------------- |
+| Serial/UART | 7     | Independent ports with FIFOs |
+| SPI         | 3     | First has FIFO               |
+| I2C         | 3     | 100/400/1000 kbit/sec        |
+| CAN         | 3     | 1 with CAN FD                |
+| I2S/TDM     | 2     | Up to 8ch I2S or 16ch TDM    |
+| S/PDIF      | 1     | Independent from I2S         |
 
 ## USB
 
