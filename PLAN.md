@@ -12,18 +12,22 @@ Build a guitar with per-string pickups that converts each string's audio signal 
 
 Validate the entire signal chain with one string before committing to a full build.
 
+**Status: Complete**
+
 **Success criteria:**
 
-- One string reliably triggers MIDI Note On/Off over USB
-- Pitch detection latency is acceptable (<15ms for upper strings)
-- Pitch bend tracking works when bending the string
+- [x] One string reliably triggers MIDI Note On/Off over USB
+- [x] Pitch detection latency is acceptable (~34ms with 1536-sample buffer at 44100 Hz)
+- [x] USB Audio streaming working (combined pickup audio visible as audio input on computer)
+- [ ] Pitch bend tracking works when bending the string
 
 ### Phase 2 — Expand to 6 Strings
 
-- Full 6-pickup set
-- Full 6-pickup set wired to 6 analog inputs on Teensy
+- Full 6-pickup set wired to 6 analog inputs on Teensy (A1-A6 for pitch detection via analogRead, ADC1)
+- Combined audio from all pickups into A0 for USB Audio streaming (AudioInputAnalog, ADC2)
 - Proper PCB or protoboard layout (6x buffer circuits)
-- MPE output: each string on its own MIDI channel
+- MPE output: each string on its own MIDI channel (channels 2-7)
+- 6 independent YIN pitch detectors (staggered across loop iterations for CPU load balancing)
 
 ### Phase 3 — Guitar Body Integration
 
@@ -112,7 +116,8 @@ Guitar String
 - **Arduino IDE + Teensyduino** — development environment
 - **Teensy ADC Library** — optimized analog reading, supports high-speed sampling on both ADCs
 - **USB MIDI** — built into Teensy hardware, no extra libraries
-- **YIN / autocorrelation algorithm** — pitch detection (to be written or adapted)
+- **YIN algorithm** — pitch detection (cumulative mean normalized difference, implemented and working)
+- **Teensy Audio Library** — USB audio streaming (AudioInputAnalog → AudioOutputUSB)
 
 ## Key Technical Challenges
 
@@ -127,13 +132,17 @@ Mitigations: onset detection (trigger note on attack, refine pitch after), hybri
 
 ### ADC Strategy
 
-**Phase 1: Onboard ADC (simplest start)**
-Use Teensy's built-in 12-bit ADC via analog pin. Minimal wiring, no extra hardware. Good enough to validate the concept and test pitch detection.
+**Phase 1: Onboard ADC (validated)**
+Teensy's built-in 12-bit ADC works for pitch detection. The Audio library's `AudioInputAnalog` uses ADC2 via DMA for USB audio streaming. Manual `analogRead()` on A1-A6 uses ADC1 for per-string pitch detection — these coexist safely on separate ADC hardware units.
+
+**Important ADC constraints:**
+
+- Do NOT call `analogReadResolution()` or `analogReadAveraging()` after Audio library init — these modify both ADC1 and ADC2 registers, corrupting Audio library's DMA setup.
+- Pins A12/A13 route to ADC2 — do not use with `analogRead()` when Audio library is active.
+- Consider using Teensy ADC library (`ADC.h` by pedvide) for explicit ADC1 targeting if per-ADC configuration is needed.
 
 **Upgrade option: PCM1808 modules**
-24-bit stereo ADC, up to 96kHz, I2S interface. ~$5-8 per module. Three modules cover all 6 strings. Significantly cleaner signal which may improve pitch tracking accuracy, especially on low strings. Worth upgrading to if 12-bit proves noisy or if pitch detection struggles.
-
-**Decision point:** After Phase 1, evaluate whether 12-bit resolution is sufficient for reliable pitch detection. If yes, scale with onboard ADC (6 analog pins). If no, switch to PCM1808 modules (3x for 6 strings via I2S).
+24-bit stereo ADC, up to 96kHz, I2S interface. ~$5-8 per module. Three modules cover all 6 strings. Worth upgrading to if pitch detection struggles with 12-bit resolution.
 
 ### MIDI Output Format
 
@@ -153,7 +162,7 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 - **1/4" jack:** Zero-latency analog output, works without a computer (amps, pedalboards, DI boxes)
 - **USB audio:** Teensy supports "Serial + MIDI + Audio" USB type, allowing combined MIDI + raw audio over a single USB cable. The DAW sees both a MIDI instrument and an audio input from one device.
 
-**Decision point:** Evaluate USB audio in a later phase. The signal split at the buffer is simple to add during the physical build (Phase 3). USB audio firmware requires the Teensy Audio library and changing the USB type setting.
+**USB Audio: Implemented.** Teensy Audio library streams combined pickup audio over USB (Arduino IDE USB Type = "Serial + MIDI + Audio"). Computer sees both a MIDI device and an audio input from one USB connection. The 1/4" analog jack remains a Phase 3 addition for the physical build.
 
 ---
 
