@@ -1,25 +1,38 @@
-// ADC + Pitch + MIDI — single string pitch-to-MIDI
-// Arduino IDE USB Type must be set to "Serial + MIDI"
+// ADC + Pitch + MIDI + USB Audio — single string pitch-to-MIDI
+// Arduino IDE USB Type must be set to "Serial + MIDI + Audio"
 //
-// Detects pitch via autocorrelation, sends MIDI note on/off over USB.
-// Your DAW will see the Teensy as a MIDI input device.
+// Detects pitch via YIN algorithm, sends MIDI note on/off over USB.
+// Also streams raw pickup audio over USB Audio (visible as an audio input
+// device on your computer — open it in a DAW, Audacity, etc.).
 
+#include <Audio.h>
 #include <usb_midi.h>
 
-const int PICKUP_PIN = A0;
+// Audio library objects
+AudioInputAnalog     adcInput(A0);       // ADC input from pickup
+AudioOutputUSB       usbAudioOut;        // USB audio output (stereo)
+AudioRecordQueue     queue;              // tap audio stream for pitch detection
+
+// Connections: ADC → USB audio (both channels) and ADC → queue
+AudioConnection      patchCord1(adcInput, 0, usbAudioOut, 0);  // left channel
+AudioConnection      patchCord2(adcInput, 0, usbAudioOut, 1);  // right channel
+AudioConnection      patchCord3(adcInput, 0, queue, 0);        // pitch detection tap
+
 const int LED_PIN = 13;
 const int MIDI_CHANNEL = 1;
 
-// Sampling
-const int BUFFER_SIZE = 1024;
-const int SAMPLE_INTERVAL_US = 50;
+// Sampling — Audio library runs at 44100 Hz, 128 samples per block
+const float SAMPLE_RATE = 44100.0;
+const int BLOCK_SIZE = 128;              // Audio library block size
+const int NUM_BLOCKS = 12;              // blocks to accumulate before pitch detection
+const int BUFFER_SIZE = BLOCK_SIZE * NUM_BLOCKS; // 1536 samples
 
 int16_t buffer[BUFFER_SIZE];
-float actualSampleRate;
+int bufferIndex = 0;
 
 // Signal detection
-const int SIGNAL_THRESHOLD = 25;        // min spread to detect a note
-const int NOTE_OFF_THRESHOLD = 20;       // spread below this = note off
+const int SIGNAL_THRESHOLD = 300;       // min spread to detect a note (idle ~55, playing ~1400+)
+const int NOTE_OFF_THRESHOLD = 150;      // spread below this = note off
 const int VELOCITY = 100;                // fixed velocity for now
 
 // Note tracking
@@ -32,9 +45,13 @@ const char* NOTE_NAMES[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A"
 
 void setup() {
   Serial.begin(115200);
-  analogReadResolution(12);
-  pinMode(PICKUP_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
+
+  // Audio library needs memory for its block system
+  AudioMemory(12);
+
+  // Start recording queue for pitch detection
+  queue.begin();
 
   for (int i = 0; i < 3; i++) {
     digitalWrite(LED_PIN, HIGH);
@@ -44,21 +61,29 @@ void setup() {
   }
 
   delay(1000);
-  Serial.println("=== Pitch-to-MIDI ===");
-  Serial.println("USB Type must be 'Serial + MIDI'");
-  Serial.println("Pluck a string — MIDI notes will be sent over USB.");
+  Serial.println("=== Pitch-to-MIDI + USB Audio ===");
+  Serial.println("USB Type must be 'Serial + MIDI + Audio'");
+  Serial.println("Pluck a string — MIDI notes sent over USB, audio streamed over USB Audio.");
   Serial.println("---");
 }
 
 void loop() {
-  // Fill buffer and measure actual elapsed time
-  unsigned long t0 = micros();
-  for (int i = 0; i < BUFFER_SIZE; i++) {
-    buffer[i] = analogRead(PICKUP_PIN) - 2048;
-    delayMicroseconds(SAMPLE_INTERVAL_US);
+  // Accumulate audio blocks into our pitch detection buffer
+  while (queue.available()) {
+    int16_t *block = queue.readBuffer();
+    int samplesToCopy = min(BLOCK_SIZE, BUFFER_SIZE - bufferIndex);
+    memcpy(buffer + bufferIndex, block, samplesToCopy * sizeof(int16_t));
+    bufferIndex += samplesToCopy;
+    queue.freeBuffer();
   }
-  unsigned long elapsed = micros() - t0;
-  actualSampleRate = (float)BUFFER_SIZE / elapsed * 1000000.0;
+
+  // Wait until we have a full buffer before doing pitch detection
+  if (bufferIndex < BUFFER_SIZE) {
+    usbMIDI.read();
+    return;
+  }
+
+  bufferIndex = 0;
 
   // Check signal level
   int16_t minVal = 32767;
@@ -78,8 +103,7 @@ void loop() {
       digitalWrite(LED_PIN, LOW);
       currentNote = -1;
     }
-    Serial.println(spread);
-    usbMIDI.read(); // must read to keep USB alive
+    usbMIDI.read();
     return;
   }
 
@@ -120,61 +144,90 @@ void loop() {
     }
   }
 
-  usbMIDI.read(); // must read to keep USB alive
+  usbMIDI.read();
 }
 
 float detectPitch() {
-  int minPeriod = actualSampleRate / 1000;
-  int maxPeriod = actualSampleRate / 60;
+  // Guitar range: ~60 Hz (drop D low) to ~700 Hz (high E, ~12th fret)
+  // minPeriod must be large enough for CMND to stabilize (~63+ samples)
+  int minPeriod = SAMPLE_RATE / 700;    // ~63 samples
+  int maxPeriod = SAMPLE_RATE / 60;     // ~735 samples
 
   if (maxPeriod > BUFFER_SIZE / 2) {
     maxPeriod = BUFFER_SIZE / 2;
   }
 
-  long bestCorrelation = 0;
+  // YIN algorithm — cumulative mean normalized difference
+  // Step 1: compute difference function d(tau)
+  // Step 2: cumulative mean normalization d'(tau) — suppresses harmonics
+  // Step 3: pick FIRST dip below threshold — guarantees fundamental, not harmonics
+
+  // Allocate on stack — maxPeriod is at most BUFFER_SIZE/2 (768)
+  float cmnd[BUFFER_SIZE / 2 + 1];  // cumulative mean normalized difference
+  cmnd[0] = 1.0f;
+
+  float runningSum = 0;
   int bestPeriod = 0;
+  float bestDiff = 1.0f;
 
-  long sumSq = 0;
-  for (int i = 0; i < BUFFER_SIZE; i++) {
-    sumSq += (long)buffer[i] * buffer[i];
-  }
-  long rmsThreshold = sumSq / 2;
-
-  for (int period = minPeriod; period <= maxPeriod; period++) {
-    long correlation = 0;
-    int count = BUFFER_SIZE - period;
+  for (int tau = 1; tau <= maxPeriod; tau++) {
+    float diff = 0;  // float to avoid int32 overflow with 16-bit samples
+    int count = BUFFER_SIZE - tau;
     for (int i = 0; i < count; i++) {
-      correlation += (long)buffer[i] * buffer[i + period];
+      float d = (float)buffer[i] - buffer[i + tau];
+      diff += d * d;
     }
 
-    if (correlation > bestCorrelation) {
-      bestCorrelation = correlation;
-      bestPeriod = period;
-    }
-  }
+    runningSum += diff;
+    // Cumulative mean normalized difference: d'(tau) = d(tau) / ((1/tau) * sum(d(1..tau)))
+    cmnd[tau] = (runningSum > 0) ? (diff * tau / runningSum) : 1.0f;
 
-  if (bestCorrelation < rmsThreshold / 4) {
-    return -1;
+    // Only consider periods in guitar range
+    if (tau >= minPeriod) {
+      // Look for first dip below threshold (YIN absolute threshold)
+      if (cmnd[tau] < 0.20f) {
+        // Find the local minimum of this dip
+        bestPeriod = tau;
+        bestDiff = cmnd[tau];
+        // Continue to find the bottom of this dip
+        while (tau + 1 <= maxPeriod) {
+          float diff2 = 0;
+          int count2 = BUFFER_SIZE - (tau + 1);
+          for (int i = 0; i < count2; i++) {
+            float d2 = (float)buffer[i] - buffer[i + tau + 1];
+            diff2 += d2 * d2;
+          }
+          runningSum += diff2;
+          cmnd[tau + 1] = (runningSum > 0) ? (diff2 * (tau + 1) / runningSum) : 1.0f;
+          tau++;
+          if (cmnd[tau] < bestDiff) {
+            bestDiff = cmnd[tau];
+            bestPeriod = tau;
+          } else {
+            break;  // passed the minimum, stop
+          }
+        }
+        break;  // use the first dip — this is the fundamental
+      }
+    }
   }
 
   if (bestPeriod == 0) {
     return -1;
   }
 
-  // Parabolic interpolation
+  // Parabolic interpolation using the cmnd array
   if (bestPeriod > minPeriod && bestPeriod < maxPeriod) {
-    long corrPrev = 0, corrNext = 0;
-    int count = BUFFER_SIZE - bestPeriod;
-    for (int i = 0; i < count - 1; i++) {
-      corrPrev += (long)buffer[i] * buffer[i + bestPeriod - 1];
-      corrNext += (long)buffer[i] * buffer[i + bestPeriod + 1];
+    float nPrev = cmnd[bestPeriod - 1];
+    float nNext = cmnd[bestPeriod + 1];
+    float denom = nPrev - 2.0f * bestDiff + nNext;
+    if (fabsf(denom) > 1e-6f) {
+      float shift = 0.5f * (nPrev - nNext) / denom;
+      return SAMPLE_RATE / (bestPeriod + shift);
     }
-    float shift = 0.5 * (corrPrev - corrNext) /
-                  (corrPrev - 2.0 * bestCorrelation + corrNext);
-    return actualSampleRate / (bestPeriod + shift);
   }
 
-  return actualSampleRate / bestPeriod;
+  return SAMPLE_RATE / bestPeriod;
 }
 
 int frequencyToMidi(float freq) {
