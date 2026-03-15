@@ -33,6 +33,7 @@ public:
     NoteState getState() const { return state; }
     float getAttackAmplitude() const { return peakAmplitude; }
     float getCurrentRMS() const { return currentRMS; }
+    uint32_t getNoteOnTime() const { return noteOnTime; }
 
     void confirmPitch();
     void reset();

@@ -15,7 +15,11 @@ void MidiOutput::frequencyToMidi(float frequency, int& noteNumber, float& remain
 }
 
 int MidiOutput::amplitudeToVelocity(float amplitude) {
-    int velocity = (int)(amplitude * (MIDI_VELOCITY_MAX - MIDI_VELOCITY_MIN) + MIDI_VELOCITY_MIN);
+    // Map from actual signal range (~0.08 to ~0.5) to velocity range
+    float normalized = (amplitude - ONSET_THRESHOLD) / (0.5f - ONSET_THRESHOLD);
+    if (normalized < 0.0f) normalized = 0.0f;
+    if (normalized > 1.0f) normalized = 1.0f;
+    int velocity = (int)(normalized * (MIDI_VELOCITY_MAX - MIDI_VELOCITY_MIN) + MIDI_VELOCITY_MIN);
     if (velocity < MIDI_VELOCITY_MIN) velocity = MIDI_VELOCITY_MIN;
     if (velocity > MIDI_VELOCITY_MAX) velocity = MIDI_VELOCITY_MAX;
     return velocity;
@@ -28,6 +32,7 @@ void MidiOutput::sendNoteOn(int noteNumber, int velocity) {
 
     currentNote = noteNumber;
     lastPitchBend = 0.0f;
+    usbMIDI.sendPitchBend(PITCH_BEND_CENTER, channel); // Reset pitch bend before note on
     usbMIDI.sendNoteOn(noteNumber, velocity, channel);
 }
 
@@ -36,7 +41,7 @@ void MidiOutput::sendNoteOff() {
         usbMIDI.sendNoteOff(currentNote, 0, channel);
         currentNote = -1;
         lastPitchBend = 0.0f;
-        usbMIDI.sendPitchBend(PITCH_BEND_CENTER, channel);
+        // usbMIDI.sendPitchBend(PITCH_BEND_CENTER, channel);
     }
 }
 
@@ -51,5 +56,5 @@ void MidiOutput::sendPitchBend(float semitoneOffset) {
     if (bendValue < 0) bendValue = 0;
     if (bendValue > 16383) bendValue = 16383;
 
-    usbMIDI.sendPitchBend(bendValue, channel);
+    // usbMIDI.sendPitchBend(bendValue, channel);
 }

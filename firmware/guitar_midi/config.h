@@ -20,19 +20,20 @@ constexpr int RING_BUFFER_MASK = RING_BUFFER_SIZE - 1;
 
 // --- Pitch detection (YIN) ---
 constexpr int YIN_BUFFER_SIZE = 512;                                // Analysis window (~25.6ms at 20kHz)
-constexpr float YIN_THRESHOLD = 0.15f;                              // Aperiodicity threshold (lower = stricter)
+constexpr float YIN_THRESHOLD = 0.25f;                              // Aperiodicity threshold (lower = stricter)
 constexpr float MIN_FREQUENCY = 75.0f;                              // Below low E (82Hz) with margin
 constexpr float MAX_FREQUENCY = 1400.0f;                            // Above high E 24th fret (~1319Hz)
 constexpr int YIN_TAU_MIN = (int)(ADC_SAMPLE_RATE / MAX_FREQUENCY); // ~14
 constexpr int YIN_TAU_MAX = (int)(ADC_SAMPLE_RATE / MIN_FREQUENCY); // ~267
 
 // --- Onset / offset detection ---
-constexpr float ONSET_THRESHOLD = 0.25f;    // RMS threshold for note-on
-constexpr float OFFSET_THRESHOLD = 0.11f;   // RMS threshold for note-off
-constexpr int ONSET_WINDOW = 64;            // Samples per RMS calculation
+constexpr float ONSET_THRESHOLD = 0.50f;    // RMS threshold for note-on (noise spikes to ~0.4)
+constexpr float OFFSET_THRESHOLD = 0.15f;   // RMS threshold for note-off
+constexpr int ONSET_WINDOW = 256;           // Samples per RMS calculation (~12.8ms, covers full waveform cycle)
 constexpr uint32_t OFFSET_HOLD_MS = 80;     // Min note duration before allowing note-off
-constexpr uint32_t RETRIGGER_BLOCK_MS = 30; // Min time between note-on events
-constexpr uint32_t PITCH_TIMEOUT_MS = 50;   // Max wait for valid pitch after onset
+constexpr uint32_t RETRIGGER_BLOCK_MS = 200; // Min time between note-on events (prevents false re-trigger after decay)
+constexpr uint32_t PITCH_TIMEOUT_MS = 200;  // Max wait for valid pitch after onset
+constexpr uint32_t PITCH_DELAY_MS = 20;     // Wait before first pitch detection after onset
 
 // --- MIDI ---
 constexpr int MIDI_VELOCITY_MIN = 20;

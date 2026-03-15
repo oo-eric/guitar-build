@@ -23,11 +23,17 @@ Validate the entire signal chain with one string before committing to a full bui
 
 ### Phase 2 — Expand to 6 Strings
 
-- Full 6-pickup set wired to 6 analog inputs on Teensy (A1-A6 for pitch detection via analogRead, ADC1)
-- Combined audio from all pickups into A0 for USB Audio streaming (AudioInputAnalog, ADC2)
-- Proper PCB or protoboard layout (6x buffer circuits)
+**Status: In Progress**
+
+- Full 6-pickup set wired to 6 analog inputs on Teensy (A0-A5, manual analogRead via ADC library)
+- 3x MCP6002 op-amps (replacing TL072 — runs on Teensy 3.3V, no battery needed)
+- Per-string gain resistors (high strings need more gain than low strings)
 - MPE output: each string on its own MIDI channel (channels 2-7)
-- 6 independent YIN pitch detectors (staggered across loop iterations for CPU load balancing)
+- 6 independent YIN pitch detectors (staggered — one per 5ms tick, each string checked every 30ms)
+- RMS-based onset/offset detection with hysteresis and retrigger blocking
+- Pitch bend tracking during sustain
+- No USB Audio for Phase 2 (MIDI only, simplifies architecture)
+- Firmware: modular `guitar_midi/` directory (config.h, adc_sampler, onset_detector, pitch_detector, midi_output)
 
 ### Phase 3 — Guitar Body Integration
 

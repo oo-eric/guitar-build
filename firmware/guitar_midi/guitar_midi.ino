@@ -99,8 +99,30 @@ void loop()
 
         if (state == NoteState::ATTACK || state == NoteState::SUSTAIN)
         {
+            // Skip pitch detection during initial attack transient
+            if (state == NoteState::ATTACK && (millis() - onset[s].getNoteOnTime()) < PITCH_DELAY_MS) {
+                pitchStringIndex = (pitchStringIndex + 1) % NUM_STRINGS;
+                usbMIDI.read();
+                return;
+            }
+
             sampler.getRecentSamples(s, pitchBuffer, YIN_BUFFER_SIZE);
             PitchResult result = pitch[s].detect(pitchBuffer, YIN_BUFFER_SIZE);
+
+            if (DEBUG_SERIAL) {
+                Serial.print("[");
+                Serial.print(STRING_NAMES[s]);
+                Serial.print("] pitch: freq=");
+                Serial.print(result.frequency, 1);
+                Serial.print(" prob=");
+                Serial.print(result.probability, 2);
+                Serial.print(" samples=");
+                Serial.print(pitchBuffer[0]);
+                Serial.print(",");
+                Serial.print(pitchBuffer[128]);
+                Serial.print(",");
+                Serial.println(pitchBuffer[256]);
+            }
 
             if (result.frequency > 0 && result.probability > 0.80f)
             {
@@ -112,7 +134,7 @@ void loop()
                 {
                     // First valid pitch after onset — send note on
                     int velocity = MidiOutput::amplitudeToVelocity(onset[s].getAttackAmplitude());
-                    midi[s].sendPitchBend(remainder);
+                    // midi[s].sendPitchBend(remainder);
                     midi[s].sendNoteOn(noteNum, velocity);
                     onset[s].confirmPitch();
                     activeNote[s] = noteNum;
@@ -144,7 +166,7 @@ void loop()
                         // Frequency moved to a clearly different note
                         int velocity = MidiOutput::amplitudeToVelocity(onset[s].getAttackAmplitude());
                         midi[s].sendNoteOff();
-                        midi[s].sendPitchBend(remainder);
+                        // midi[s].sendPitchBend(remainder);
                         midi[s].sendNoteOn(noteNum, velocity);
                         activeNote[s] = noteNum;
 
@@ -161,7 +183,7 @@ void loop()
                         // Small pitch variation — send as pitch bend
                         float currentMidiNote = 12.0f * log2f(result.frequency / 440.0f) + 69.0f;
                         float bendFromOriginal = currentMidiNote - (float)activeNote[s];
-                        midi[s].sendPitchBend(bendFromOriginal);
+                        // midi[s].sendPitchBend(bendFromOriginal);
                     }
                 }
             }
@@ -202,8 +224,8 @@ void loop()
                 Serial.print("] state=");
                 Serial.print((int)onset[s].getState());
             }
-            Serial.print(" rms=");
-            Serial.println(onset[s].getCurrentRMS(), 4);
+            // Serial.print(" rms=");
+            // Serial.println(onset[s].getCurrentRMS(), 4);
         }
     }
 
