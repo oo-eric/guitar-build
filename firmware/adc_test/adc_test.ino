@@ -9,41 +9,42 @@
 #include <usb_midi.h>
 
 // Audio library objects
-AudioInputAnalog     adcInput(A0);       // ADC input from pickup
-AudioOutputUSB       usbAudioOut;        // USB audio output (stereo)
-AudioRecordQueue     queue;              // tap audio stream for pitch detection
+AudioInputAnalog adcInput(A0); // ADC input from pickup
+AudioOutputUSB usbAudioOut;    // USB audio output (stereo)
+AudioRecordQueue queue;        // tap audio stream for pitch detection
 
 // Connections: ADC → USB audio (both channels) and ADC → queue
-AudioConnection      patchCord1(adcInput, 0, usbAudioOut, 0);  // left channel
-AudioConnection      patchCord2(adcInput, 0, usbAudioOut, 1);  // right channel
-AudioConnection      patchCord3(adcInput, 0, queue, 0);        // pitch detection tap
+AudioConnection patchCord1(adcInput, 0, usbAudioOut, 0); // left channel
+AudioConnection patchCord2(adcInput, 0, usbAudioOut, 1); // right channel
+AudioConnection patchCord3(adcInput, 0, queue, 0);       // pitch detection tap
 
 const int LED_PIN = 13;
 const int MIDI_CHANNEL = 1;
 
 // Sampling — Audio library runs at 44100 Hz, 128 samples per block
 const float SAMPLE_RATE = 44100.0;
-const int BLOCK_SIZE = 128;              // Audio library block size
-const int NUM_BLOCKS = 12;              // blocks to accumulate before pitch detection
+const int BLOCK_SIZE = 128;                      // Audio library block size
+const int NUM_BLOCKS = 12;                       // blocks to accumulate before pitch detection
 const int BUFFER_SIZE = BLOCK_SIZE * NUM_BLOCKS; // 1536 samples
 
 int16_t buffer[BUFFER_SIZE];
 int bufferIndex = 0;
 
 // Signal detection
-const int SIGNAL_THRESHOLD = 300;       // min spread to detect a note (idle ~55, playing ~1400+)
-const int NOTE_OFF_THRESHOLD = 150;      // spread below this = note off
-const int VELOCITY = 100;                // fixed velocity for now
+const int SIGNAL_THRESHOLD = 400;   // min spread to detect a note (idle ~55, playing ~1400+)
+const int NOTE_OFF_THRESHOLD = 300; // spread below this = note off
+const int VELOCITY = 100;           // fixed velocity for now
 
 // Note tracking
-int currentNote = -1;                    // -1 = no note playing
+int currentNote = -1; // -1 = no note playing
 unsigned long noteOnTime = 0;
-const unsigned long MIN_NOTE_MS = 50;    // minimum note duration to avoid flicker
+const unsigned long MIN_NOTE_MS = 50; // minimum note duration to avoid flicker
 
 // Note names for serial debug
-const char* NOTE_NAMES[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+const char *NOTE_NAMES[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
 
@@ -53,7 +54,8 @@ void setup() {
   // Start recording queue for pitch detection
   queue.begin();
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
+  {
     digitalWrite(LED_PIN, HIGH);
     delay(100);
     digitalWrite(LED_PIN, LOW);
@@ -67,9 +69,11 @@ void setup() {
   Serial.println("---");
 }
 
-void loop() {
+void loop()
+{
   // Accumulate audio blocks into our pitch detection buffer
-  while (queue.available()) {
+  while (queue.available())
+  {
     int16_t *block = queue.readBuffer();
     int samplesToCopy = min(BLOCK_SIZE, BUFFER_SIZE - bufferIndex);
     memcpy(buffer + bufferIndex, block, samplesToCopy * sizeof(int16_t));
@@ -78,7 +82,8 @@ void loop() {
   }
 
   // Wait until we have a full buffer before doing pitch detection
-  if (bufferIndex < BUFFER_SIZE) {
+  if (bufferIndex < BUFFER_SIZE)
+  {
     usbMIDI.read();
     return;
   }
@@ -88,39 +93,72 @@ void loop() {
   // Check signal level
   int16_t minVal = 32767;
   int16_t maxVal = -32768;
-  for (int i = 0; i < BUFFER_SIZE; i++) {
-    if (buffer[i] < minVal) minVal = buffer[i];
-    if (buffer[i] > maxVal) maxVal = buffer[i];
+  for (int i = 0; i < BUFFER_SIZE; i++)
+  {
+    if (buffer[i] < minVal)
+      minVal = buffer[i];
+    if (buffer[i] > maxVal)
+      maxVal = buffer[i];
   }
+
   int spread = maxVal - minVal;
+  Serial.print("spread: ");
+  Serial.print(spread);
+
+  float freq = detectPitch();
+  Serial.print(" | freq: ");
+  Serial.print(freq, 1);
+  Serial.print(" Hz");
 
   // Note off: signal died
-  if (spread < NOTE_OFF_THRESHOLD) {
-    if (currentNote >= 0 && (millis() - noteOnTime) > MIN_NOTE_MS) {
+  if (spread < NOTE_OFF_THRESHOLD)
+  {
+    if (currentNote >= 0 && (millis() - noteOnTime) > MIN_NOTE_MS)
+    {
       usbMIDI.sendNoteOff(currentNote, 0, MIDI_CHANNEL);
-      Serial.print("NOTE OFF: ");
-      Serial.println(currentNote);
+      Serial.print("| NOTE OFF: ");
+      Serial.print(currentNote);
       digitalWrite(LED_PIN, LOW);
       currentNote = -1;
     }
+
+    Serial.println("");
+
     usbMIDI.read();
     return;
   }
 
   // Signal present — detect pitch
-  if (spread >= SIGNAL_THRESHOLD) {
-    float freq = detectPitch();
+  if (spread >= SIGNAL_THRESHOLD)
+  {
 
-    if (freq > 0) {
+    if (freq > 0)
+    {
       int midiNote = frequencyToMidi(freq);
 
       // Clamp to valid MIDI range
-      if (midiNote < 0) midiNote = 0;
-      if (midiNote > 127) midiNote = 127;
+      if (midiNote < 0)
+        midiNote = 0;
+      if (midiNote > 127)
+        midiNote = 127;
 
-      if (midiNote != currentNote) {
+      // Hysteresis: when a note is playing, ignore small wobbles (< 0.6 semitones)
+      // AND reject wild jumps (> 7 semitones) — those are YIN failures on weak signals.
+      // Wild jumps require a note-off first before a new note can trigger.
+      bool shouldSwitch;
+      if (currentNote < 0) {
+        shouldSwitch = true; // no note playing, accept anything
+      } else {
+        float currentCenter = 440.0 * pow(2.0, (currentNote - 69) / 12.0);
+        float semitoneDistance = 12.0 * fabs(log2(freq / currentCenter));
+        shouldSwitch = semitoneDistance > 0.6 && semitoneDistance <= 7.0;
+      }
+
+      if (shouldSwitch)
+      {
         // New note — turn off old one first
-        if (currentNote >= 0) {
+        if (currentNote >= 0)
+        {
           usbMIDI.sendNoteOff(currentNote, 0, MIDI_CHANNEL);
         }
         // Send new note
@@ -131,29 +169,30 @@ void loop() {
 
         int noteIndex = midiNote % 12;
         int octave = (midiNote / 12) - 1;
-        Serial.print("NOTE ON: ");
+        Serial.print(" | NOTE ON: ");
         Serial.print(NOTE_NAMES[noteIndex]);
         Serial.print(octave);
         Serial.print(" (MIDI ");
         Serial.print(midiNote);
-        Serial.print(") | freq: ");
-        Serial.print(freq, 1);
-        Serial.print(" Hz | spread: ");
-        Serial.println(spread);
+        Serial.print(")");
       }
     }
   }
 
+  Serial.println("");
+
   usbMIDI.read();
 }
 
-float detectPitch() {
+float detectPitch()
+{
   // Guitar range: ~60 Hz (drop D low) to ~700 Hz (high E, ~12th fret)
   // minPeriod must be large enough for CMND to stabilize (~63+ samples)
-  int minPeriod = SAMPLE_RATE / 700;    // ~63 samples
-  int maxPeriod = SAMPLE_RATE / 60;     // ~735 samples
+  int minPeriod = SAMPLE_RATE / 700; // ~63 samples
+  int maxPeriod = SAMPLE_RATE / 60;  // ~735 samples
 
-  if (maxPeriod > BUFFER_SIZE / 2) {
+  if (maxPeriod > BUFFER_SIZE / 2)
+  {
     maxPeriod = BUFFER_SIZE / 2;
   }
 
@@ -163,17 +202,19 @@ float detectPitch() {
   // Step 3: pick FIRST dip below threshold — guarantees fundamental, not harmonics
 
   // Allocate on stack — maxPeriod is at most BUFFER_SIZE/2 (768)
-  float cmnd[BUFFER_SIZE / 2 + 1];  // cumulative mean normalized difference
+  float cmnd[BUFFER_SIZE / 2 + 1]; // cumulative mean normalized difference
   cmnd[0] = 1.0f;
 
   float runningSum = 0;
   int bestPeriod = 0;
   float bestDiff = 1.0f;
 
-  for (int tau = 1; tau <= maxPeriod; tau++) {
-    float diff = 0;  // float to avoid int32 overflow with 16-bit samples
+  for (int tau = 1; tau <= maxPeriod; tau++)
+  {
+    float diff = 0; // float to avoid int32 overflow with 16-bit samples
     int count = BUFFER_SIZE - tau;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
+    {
       float d = (float)buffer[i] - buffer[i + tau];
       diff += d * d;
     }
@@ -183,45 +224,55 @@ float detectPitch() {
     cmnd[tau] = (runningSum > 0) ? (diff * tau / runningSum) : 1.0f;
 
     // Only consider periods in guitar range
-    if (tau >= minPeriod) {
+    if (tau >= minPeriod)
+    {
       // Look for first dip below threshold (YIN absolute threshold)
-      if (cmnd[tau] < 0.20f) {
+      if (cmnd[tau] < 0.20f)
+      {
         // Find the local minimum of this dip
         bestPeriod = tau;
         bestDiff = cmnd[tau];
         // Continue to find the bottom of this dip
-        while (tau + 1 <= maxPeriod) {
+        while (tau + 1 <= maxPeriod)
+        {
           float diff2 = 0;
           int count2 = BUFFER_SIZE - (tau + 1);
-          for (int i = 0; i < count2; i++) {
+          for (int i = 0; i < count2; i++)
+          {
             float d2 = (float)buffer[i] - buffer[i + tau + 1];
             diff2 += d2 * d2;
           }
           runningSum += diff2;
           cmnd[tau + 1] = (runningSum > 0) ? (diff2 * (tau + 1) / runningSum) : 1.0f;
           tau++;
-          if (cmnd[tau] < bestDiff) {
+          if (cmnd[tau] < bestDiff)
+          {
             bestDiff = cmnd[tau];
             bestPeriod = tau;
-          } else {
-            break;  // passed the minimum, stop
+          }
+          else
+          {
+            break; // passed the minimum, stop
           }
         }
-        break;  // use the first dip — this is the fundamental
+        break; // use the first dip — this is the fundamental
       }
     }
   }
 
-  if (bestPeriod == 0) {
+  if (bestPeriod == 0)
+  {
     return -1;
   }
 
   // Parabolic interpolation using the cmnd array
-  if (bestPeriod > minPeriod && bestPeriod < maxPeriod) {
+  if (bestPeriod > minPeriod && bestPeriod < maxPeriod)
+  {
     float nPrev = cmnd[bestPeriod - 1];
     float nNext = cmnd[bestPeriod + 1];
     float denom = nPrev - 2.0f * bestDiff + nNext;
-    if (fabsf(denom) > 1e-6f) {
+    if (fabsf(denom) > 1e-6f)
+    {
       float shift = 0.5f * (nPrev - nNext) / denom;
       return SAMPLE_RATE / (bestPeriod + shift);
     }
@@ -230,6 +281,7 @@ float detectPitch() {
   return SAMPLE_RATE / bestPeriod;
 }
 
-int frequencyToMidi(float freq) {
+int frequencyToMidi(float freq)
+{
   return round(69 + 12 * log2(freq / 440.0));
 }
