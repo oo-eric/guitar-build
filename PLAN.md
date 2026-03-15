@@ -178,6 +178,10 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 
 ## Future Exploration
 
+### ILI9341 TFT Display
+
+240x320 SPI display for showing waveform visualizer and detected note info. Working with TFT_eSPI library + sprites (~32ms per frame). **Currently blocked:** SPI clock (pin 13) couples noise into adjacent ADC pin (A0/pin 14), making pitch detection unreliable. Fix: solder SPI to Teensy bottom pads (SCLK=27, MOSI=26, MISO=1) for physical separation from analog pins.
+
 ### MPU-6050 Accelerometer/Gyroscope (HW-123)
 
 6-axis motion sensor (3-axis accelerometer + 3-axis gyroscope) that communicates over I2C. Could be mounted on the guitar body or neck to generate MIDI CC data from physical gestures — tilt for filter sweeps, shake for vibrato, orientation for effect parameters, etc. Teensy 4.0 has multiple I2C buses so integration should be straightforward.

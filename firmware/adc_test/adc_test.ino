@@ -8,8 +8,7 @@
 #include <Audio.h>
 #include <usb_midi.h>
 
-#include <Adafruit_GFX.h>     // include Adafruit graphics library
-#include <Adafruit_ILI9341.h> // include Adafruit ILI9341 TFT library
+#include <TFT_eSPI.h> // TFT_eSPI library (configure pins in User_Setup.h)
 
 // Audio library objects
 AudioInputAnalog adcInput(A0); // ADC input from pickup
@@ -21,15 +20,11 @@ AudioConnection patchCord1(adcInput, 0, usbAudioOut, 0); // left channel
 AudioConnection patchCord2(adcInput, 0, usbAudioOut, 1); // right channel
 AudioConnection patchCord3(adcInput, 0, queue, 0);       // pitch detection tap
 
-const int LED_PIN = 13;
 const int MIDI_CHANNEL = 1;
 
-// ILI9341 TFT display pins
-#define TFT_DC 9
-#define TFT_CS 10
-
-// initialize ILI9341 TFT library
-Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC); // , TFT_RST
+// TFT display (pins configured in TFT_eSPI/User_Setup.h)
+TFT_eSPI tft = TFT_eSPI();
+TFT_eSprite waveSprite = TFT_eSprite(&tft); // off-screen buffer for waveform
 
 // Sampling — Audio library runs at 44100 Hz, 128 samples per block
 const float SAMPLE_RATE = 44100.0;
@@ -53,13 +48,18 @@ const unsigned long MIN_NOTE_MS = 50; // minimum note duration to avoid flicker
 // Note names for serial debug
 const char *NOTE_NAMES[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-// Waveform display
-const int WAVE_X = 0;
-const int WAVE_Y = 40;     // top of waveform area
-const int WAVE_W = 240;    // screen width
-const int WAVE_H = 200;    // waveform area height
-int16_t prevWaveY[240];    // previous y positions for erasing
-bool waveDrawn = false;    // has a waveform been drawn yet?
+// Waveform display layout
+const int WAVE_Y = 40;   // top of waveform area on screen
+const int WAVE_W = 240;  // sprite/screen width
+const int WAVE_H = 200;  // sprite/waveform height
+
+// Throttle display updates — draw every Nth buffer to keep MIDI responsive
+const int DRAW_EVERY_N = 3;
+int drawCounter = 0;
+
+// Pending display state — updated immediately, drawn only during throttled cycle
+int displayNote = -1;    // note to show (or -1 for blank)
+float displayFreq = 0;
 
 void setup()
 {
@@ -69,7 +69,7 @@ void setup()
     Serial.print(CrashReport);
 
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
+  // Note: pin 13 is shared between onboard LED and SPI SCLK — don't use LED
 
   // Audio library needs memory for its block system
   AudioMemory(12);
@@ -78,16 +78,12 @@ void setup()
   queue.begin();
 
   // Initialize TFT display
-  tft.begin();
-  tft.fillScreen(ILI9341_BLACK);
+  tft.init();
+  tft.setRotation(0); // portrait: 240 wide x 320 tall
+  tft.fillScreen(TFT_BLACK);
 
-  for (int i = 0; i < 3; i++)
-  {
-    digitalWrite(LED_PIN, HIGH);
-    delay(100);
-    digitalWrite(LED_PIN, LOW);
-    delay(100);
-  }
+  // Create sprite for waveform (240 x 200 = 96KB at 16-bit color)
+  waveSprite.createSprite(WAVE_W, WAVE_H);
 
   delay(1000);
   Serial.println("=== Pitch-to-MIDI + USB Audio ===");
@@ -117,14 +113,6 @@ void loop()
 
   bufferIndex = 0;
 
-  // Draw waveform and measure how long it takes
-  unsigned long drawStart = micros();
-  drawWaveform();
-  unsigned long drawTime = micros() - drawStart;
-  Serial.print("TFT draw: ");
-  Serial.print(drawTime / 1000.0, 1);
-  Serial.println(" ms");
-
   // Check signal level
   int16_t minVal = 32767;
   int16_t maxVal = -32768;
@@ -137,6 +125,9 @@ void loop()
   }
   int spread = maxVal - minVal;
 
+  Serial.print("spread: ");
+  Serial.println(spread);
+
   // Note off: signal died
   if (spread < NOTE_OFF_THRESHOLD)
   {
@@ -145,8 +136,7 @@ void loop()
       usbMIDI.sendNoteOff(currentNote, 0, MIDI_CHANNEL);
       Serial.print("NOTE OFF: ");
       Serial.println(currentNote);
-      digitalWrite(LED_PIN, LOW);
-      clearNoteInfo();
+      displayNote = -1;
       currentNote = -1;
     }
     usbMIDI.read();
@@ -179,8 +169,6 @@ void loop()
         usbMIDI.sendNoteOn(midiNote, VELOCITY, MIDI_CHANNEL);
         currentNote = midiNote;
         noteOnTime = millis();
-        digitalWrite(LED_PIN, HIGH);
-
         int noteIndex = midiNote % 12;
         int octave = (midiNote / 12) - 1;
         Serial.print("NOTE ON: ");
@@ -193,9 +181,33 @@ void loop()
         Serial.print(" Hz | spread: ");
         Serial.println(spread);
 
-        drawNoteInfo(midiNote, freq);
+        displayNote = midiNote;
+        displayFreq = freq;
       }
     }
+  }
+
+  // All display updates throttled to every Nth buffer
+  // Stop queue before SPI, restart after — no noise during audio capture
+  drawCounter++;
+  if (drawCounter >= DRAW_EVERY_N)
+  {
+    drawCounter = 0;
+
+    // Stop recording so no noise-contaminated blocks are captured
+    queue.end();
+
+    // Update note info
+    if (displayNote >= 0)
+      drawNoteInfo(displayNote, displayFreq);
+    else
+      clearNoteInfo();
+
+    // Update waveform
+    drawWaveform();
+
+    // Restart recording — fresh blocks from here are clean
+    queue.begin();
   }
 
   usbMIDI.read();
@@ -305,19 +317,13 @@ int frequencyToMidi(float freq)
 
 void drawWaveform()
 {
-  // Downsample buffer (1536 samples) to screen width (240 pixels)
-  // For each pixel column, find the min/max in that chunk and draw a vertical line
+  // Draw waveform into sprite (all RAM, no SPI), then push in one burst
+  waveSprite.fillSprite(TFT_BLACK);
+
   int samplesPerPixel = BUFFER_SIZE / WAVE_W; // ~6 samples per pixel
 
   for (int x = 0; x < WAVE_W; x++)
   {
-    // Erase previous column
-    if (waveDrawn)
-    {
-      tft.drawFastVLine(x, WAVE_Y, WAVE_H, ILI9341_BLACK);
-    }
-
-    // Find min/max in this chunk
     int start = x * samplesPerPixel;
     int16_t lo = buffer[start];
     int16_t hi = buffer[start];
@@ -328,25 +334,25 @@ void drawWaveform()
       if (s > hi) hi = s;
     }
 
-    // Map sample range (-32768..32767) to waveform area
-    int yLo = map(hi, -32768, 32767, WAVE_Y + WAVE_H - 1, WAVE_Y); // hi sample = top of screen
-    int yHi = map(lo, -32768, 32767, WAVE_Y + WAVE_H - 1, WAVE_Y);
-
-    // Draw vertical line from yLo to yHi (min 1px)
+    // Map sample range to sprite coordinates (0..WAVE_H-1)
+    int yLo = map(hi, -32768, 32767, WAVE_H - 1, 0);
+    int yHi = map(lo, -32768, 32767, WAVE_H - 1, 0);
     if (yHi == yLo) yHi = yLo + 1;
-    tft.drawFastVLine(x, yLo, yHi - yLo, ILI9341_GREEN);
+
+    waveSprite.drawFastVLine(x, yLo, yHi - yLo, TFT_GREEN);
   }
-  waveDrawn = true;
+
+  // Single SPI burst to push the sprite to screen
+  waveSprite.pushSprite(0, WAVE_Y);
 }
 
 void drawNoteInfo(int midiNote, float freq)
 {
-  // Clear the top area
-  tft.fillRect(0, 0, 240, WAVE_Y, ILI9341_BLACK);
+  tft.fillRect(0, 0, 240, WAVE_Y, TFT_BLACK);
 
-  tft.setCursor(4, 4);
-  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(3);
+  tft.setCursor(4, 4);
 
   int noteIndex = midiNote % 12;
   int octave = (midiNote / 12) - 1;
@@ -362,5 +368,5 @@ void drawNoteInfo(int midiNote, float freq)
 
 void clearNoteInfo()
 {
-  tft.fillRect(0, 0, 240, WAVE_Y, ILI9341_BLACK);
+  tft.fillRect(0, 0, 240, WAVE_Y, TFT_BLACK);
 }
