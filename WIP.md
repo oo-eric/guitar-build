@@ -1,6 +1,6 @@
-1. 10K resistor #1: One leg from the Teensy 3.3V row (col 3) to col 17
-2. 10K resistor #2: One leg in col 17, other leg to the GND rail
-4. Jumper wire: From col 17 to the Teensy A0 row (col 13)
+1. 10K resistor #1: One leg from the Teensy 3.3V row (col 3) to col 20
+2. 10K resistor #2: One leg in col 20, other leg to the GND rail
+4. Jumper wire: From col 20 to the Teensy A0 row (col 13)
 5. Jumper wire: From Teensy GND (col 2) to GND rail
 
 ---
@@ -14,15 +14,15 @@
 
 ---
 
-1. 10K resistor from Teensy 3.3V row → col 19
-2. 10K resistor from col 19 → GND rail
-3. Jumper from col 19 → TL072 pin 3 (+IN, col 57 bottom side)
+1. 10K resistor from Teensy 3.3V row → col 21
+2. 10K resistor from col 21 → GND rail
+3. Jumper from col 21 → TL072 pin 3 (+IN, col 57 bottom side)
 4. 200K feedback: 100K resistor from col 55 (pin 1 OUT) → col 53, 100K resistor from col 53 → col 56 (pin 2 –IN)
-5. 10uF electrolytic cap — positive leg at col 55 (pin 1 OUT), negative leg at col 41, jumper col 41 to col 30, jumper col 30 to col 17 (existing A0 junction)
+5. 10uF electrolytic cap — positive leg at col 55 (pin 1 OUT), negative leg at col 41, jumper col 41 to col 30, jumper col 30 to col 20. (existing A0 junction)
 
 ---
 
 1. 10uF electrolytic cap — positive leg at col 56 (pin 2 –IN, bottom side), negative leg at col 45
 2. Pickup hot wire (no stripe) → col 45
 3. Pickup ground wire (white stripe) → GND rail
-4. Gain resistors: multiple 10K resistors in parallel from col 56 (pin 2 –IN) to col 48, jumper from col 48 to col 30 (bias point)
+4. Gain resistors: multiple 10K resistors in parallel from col 56 (pin 2 –IN) to col 48, jumper from col 48 to col 21 (input bias point)

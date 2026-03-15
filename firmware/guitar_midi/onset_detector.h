@@ -3,40 +3,42 @@
 #include <Arduino.h>
 #include "config.h"
 
-enum class NoteState {
+enum class NoteState
+{
     IDLE,
     ATTACK,
     SUSTAIN,
     RELEASING
 };
 
-struct OnsetEvent {
+struct OnsetEvent
+{
     bool triggered;
-    float attackAmplitude; // Peak amplitude for velocity mapping
+    float attackAmplitude;
 };
 
-struct OffsetEvent {
+struct OffsetEvent
+{
     bool triggered;
 };
 
-class OnsetDetector {
+class OnsetDetector
+{
 public:
     OnsetDetector();
 
-    OnsetEvent processSamples(const int16_t* samples, int count);
+    OnsetEvent processSamples(const int16_t *samples, int count);
     OffsetEvent checkOffset();
 
     NoteState getState() const { return state; }
     float getAttackAmplitude() const { return peakAmplitude; }
+    float getCurrentRMS() const { return currentRMS; }
 
-    // Called by main loop when pitch is confirmed after ATTACK
     void confirmPitch();
-
     void reset();
 
 private:
-    float computeRMS(const int16_t* samples, int count);
-    int mapVelocity(float amplitude);
+    float computeRMS(const int16_t *samples, int count);
 
     NoteState state;
     float currentRMS;

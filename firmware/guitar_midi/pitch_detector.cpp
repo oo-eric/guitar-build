@@ -12,24 +12,17 @@ PitchResult PitchDetector::detect(const int16_t* samples, int count) {
 
     if (count < YIN_BUFFER_SIZE) return result;
 
-    // Step 1: Difference function
     differenceFunction(samples, count);
-
-    // Step 2: Cumulative mean normalized difference
     cumulativeMeanNormalizedDifference();
 
-    // Step 3: Absolute threshold — find the best tau
     int tau = absoluteThreshold();
-    if (tau < 0) return result; // No pitch found
+    if (tau < 0) return result;
 
-    // Step 4: Parabolic interpolation for sub-sample accuracy
     float tauRefined = parabolicInterpolation(tau);
 
-    // Step 5: Convert to frequency
     result.frequency = ADC_SAMPLE_RATE / tauRefined;
     result.probability = 1.0f - yinBuffer[tau];
 
-    // Sanity check
     if (result.frequency < MIN_FREQUENCY || result.frequency > MAX_FREQUENCY) {
         result.frequency = -1.0f;
         result.probability = 0.0f;
@@ -38,9 +31,18 @@ PitchResult PitchDetector::detect(const int16_t* samples, int count) {
     return result;
 }
 
+bool PitchDetector::shouldSwitchNote(float newFreq, int currentNote) {
+    if (currentNote < 0) return true; // no note playing
+
+    float currentCenter = 440.0f * powf(2.0f, (currentNote - 69) / 12.0f);
+    float semitoneDistance = 12.0f * fabsf(log2f(newFreq / currentCenter));
+
+    return semitoneDistance > HYSTERESIS_MIN_SEMITONES
+        && semitoneDistance <= HYSTERESIS_MAX_SEMITONES;
+}
+
 void PitchDetector::differenceFunction(const int16_t* samples, int count) {
     int halfWindow = YIN_BUFFER_SIZE / 2;
-
     yinBuffer[0] = 0.0f;
 
     for (int tau = 1; tau < halfWindow; tau++) {
@@ -55,8 +57,7 @@ void PitchDetector::differenceFunction(const int16_t* samples, int count) {
 
 void PitchDetector::cumulativeMeanNormalizedDifference() {
     int halfWindow = YIN_BUFFER_SIZE / 2;
-
-    yinBuffer[0] = 1.0f; // Defined as 1
+    yinBuffer[0] = 1.0f;
     float runningSum = 0.0f;
 
     for (int tau = 1; tau < halfWindow; tau++) {
@@ -67,21 +68,17 @@ void PitchDetector::cumulativeMeanNormalizedDifference() {
 
 int PitchDetector::absoluteThreshold() {
     int halfWindow = YIN_BUFFER_SIZE / 2;
-    // Search within the valid tau range for our frequency bounds
     int tauMin = (YIN_TAU_MIN > 1) ? YIN_TAU_MIN : 1;
     int tauMax = (YIN_TAU_MAX < halfWindow) ? YIN_TAU_MAX : halfWindow - 1;
 
     for (int tau = tauMin; tau < tauMax; tau++) {
         if (yinBuffer[tau] < YIN_THRESHOLD) {
-            // Find the local minimum in this dip
             while (tau + 1 < tauMax && yinBuffer[tau + 1] < yinBuffer[tau]) {
                 tau++;
             }
             return tau;
         }
     }
-
-    // No value below threshold — no pitch detected
     return -1;
 }
 

@@ -9,13 +9,13 @@ public:
     void begin();
     void stop();
 
-    // Returns number of new samples copied into dest (for onset detector)
-    int getNewSamples(int16_t* dest, int maxCount);
+    // Returns number of new samples copied into dest for a given string
+    int getNewSamples(int string, int16_t* dest, int maxCount);
 
-    // Copies the most recent 'count' samples into dest, oldest first (for pitch detector)
-    void getRecentSamples(int16_t* dest, int count);
+    // Copies the most recent 'count' samples into dest, oldest first
+    void getRecentSamples(int string, int16_t* dest, int count);
 
-    volatile uint32_t sampleCount; // Total samples taken (for debug)
+    volatile uint32_t sampleCount; // Total timer ticks (for debug)
 
 private:
     static void timerCallback();
@@ -23,7 +23,9 @@ private:
 
     ADC adc;
     IntervalTimer sampleTimer;
-    volatile int16_t ringBuffer[RING_BUFFER_SIZE];
-    volatile uint32_t writeIndex;
-    uint32_t readIndex;
+
+    // Per-string ring buffers
+    volatile int16_t ringBuffer[NUM_STRINGS][RING_BUFFER_SIZE];
+    volatile uint32_t writeIndex[NUM_STRINGS];
+    uint32_t readIndex[NUM_STRINGS];
 };

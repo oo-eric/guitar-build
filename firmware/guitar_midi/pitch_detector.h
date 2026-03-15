@@ -14,6 +14,9 @@ public:
 
     PitchResult detect(const int16_t* samples, int count);
 
+    // Hysteresis: returns true if the new note should replace the current one
+    bool shouldSwitchNote(float newFreq, int currentNote);
+
 private:
     float yinBuffer[YIN_BUFFER_SIZE / 2];
 
