@@ -100,7 +100,8 @@ void loop()
         if (state == NoteState::ATTACK || state == NoteState::SUSTAIN)
         {
             // Skip pitch detection during initial attack transient
-            if (state == NoteState::ATTACK && (millis() - onset[s].getNoteOnTime()) < PITCH_DELAY_MS) {
+            if (state == NoteState::ATTACK && (millis() - onset[s].getNoteOnTime()) < PITCH_DELAY_MS)
+            {
                 pitchStringIndex = (pitchStringIndex + 1) % NUM_STRINGS;
                 usbMIDI.read();
                 return;
@@ -109,7 +110,8 @@ void loop()
             sampler.getRecentSamples(s, pitchBuffer, YIN_BUFFER_SIZE);
             PitchResult result = pitch[s].detect(pitchBuffer, YIN_BUFFER_SIZE);
 
-            if (DEBUG_SERIAL) {
+            if (DEBUG_SERIAL)
+            {
                 Serial.print("[");
                 Serial.print(STRING_NAMES[s]);
                 Serial.print("] pitch: freq=");
@@ -217,15 +219,12 @@ void loop()
         debugTimer = 0;
         for (int s = 0; s < NUM_STRINGS; s++)
         {
-            if (onset[s].getState() != NoteState::IDLE)
-            {
-                Serial.print("[");
-                Serial.print(STRING_NAMES[s]);
-                Serial.print("] state=");
-                Serial.print((int)onset[s].getState());
-            }
-            // Serial.print(" rms=");
-            // Serial.println(onset[s].getCurrentRMS(), 4);
+            Serial.print("[");
+            Serial.print(STRING_NAMES[s]);
+            Serial.print("] state=");
+            Serial.print((int)onset[s].getState());
+            Serial.print(" rms=");
+            Serial.println(onset[s].getCurrentRMS(), 4);
         }
     }
 

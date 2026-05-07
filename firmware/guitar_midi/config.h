@@ -27,8 +27,8 @@ constexpr int YIN_TAU_MIN = (int)(ADC_SAMPLE_RATE / MAX_FREQUENCY); // ~14
 constexpr int YIN_TAU_MAX = (int)(ADC_SAMPLE_RATE / MIN_FREQUENCY); // ~267
 
 // --- Onset / offset detection ---
-constexpr float ONSET_THRESHOLD = 0.50f;    // RMS threshold for note-on (noise spikes to ~0.4)
-constexpr float OFFSET_THRESHOLD = 0.15f;   // RMS threshold for note-off
+constexpr float ONSET_THRESHOLD = 0.03f;    // RMS threshold for note-on (MCP6002 @ 3.3V: idle ~0.014, plucks ~0.05)
+constexpr float OFFSET_THRESHOLD = 0.018f;  // RMS threshold for note-off (just above idle floor)
 constexpr int ONSET_WINDOW = 256;           // Samples per RMS calculation (~12.8ms, covers full waveform cycle)
 constexpr uint32_t OFFSET_HOLD_MS = 80;     // Min note duration before allowing note-off
 constexpr uint32_t RETRIGGER_BLOCK_MS = 200; // Min time between note-on events (prevents false re-trigger after decay)
