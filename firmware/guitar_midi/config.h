@@ -3,9 +3,9 @@
 #include <Arduino.h>
 
 // --- Strings ---
-constexpr int NUM_STRINGS = 1; //6;
-constexpr int STRING_PINS[NUM_STRINGS] = {A0}; //, A1, A2, A3, A4, A5};
-constexpr int MPE_CHANNELS[NUM_STRINGS] = {2}; //, 3, 4, 5, 6, 7};
+constexpr int NUM_STRINGS = 2; // ramping up: 1 -> 2 -> 6
+constexpr int STRING_PINS[NUM_STRINGS] = {A0, A1}; //, A2, A3, A4, A5};
+constexpr int MPE_CHANNELS[NUM_STRINGS] = {2, 3}; //, 4, 5, 6, 7};
 
 // --- ADC ---
 constexpr int ADC_RESOLUTION = 12;          // 12-bit (0-4095)

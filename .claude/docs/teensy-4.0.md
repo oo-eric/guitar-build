@@ -1,6 +1,6 @@
 # Teensy 4.0 Reference
 
-Source: https://www.pjrc.com/store/teensy40.html
+Source: <https://www.pjrc.com/store/teensy40.html>
 
 ## Processor
 

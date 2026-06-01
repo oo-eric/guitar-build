@@ -16,7 +16,7 @@ OnsetDetector onset[NUM_STRINGS];
 PitchDetector pitch[NUM_STRINGS];
 MidiOutput midi[NUM_STRINGS] = {
     MidiOutput(MPE_CHANNELS[0]),
-    // MidiOutput(MPE_CHANNELS[1]),
+    MidiOutput(MPE_CHANNELS[1]),
     // MidiOutput(MPE_CHANNELS[2]),
     // MidiOutput(MPE_CHANNELS[3]),
     // MidiOutput(MPE_CHANNELS[4]),

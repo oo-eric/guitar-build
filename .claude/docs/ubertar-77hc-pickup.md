@@ -1,6 +1,6 @@
 # Ubertar 77HC Pickup Reference
 
-Source: https://ubertar.com/hexaphonic/faq.html
+Source: <https://ubertar.com/hexaphonic/faq.html>
 
 ## DC Resistance
 
@@ -26,7 +26,7 @@ Source: https://ubertar.com/hexaphonic/faq.html
 - No output voltage specs
 - No recommended buffer/preamp circuits
 - No frequency response data
-- Contact paul@ubertar.com for detailed electrical specs
+- Contact <paul@ubertar.com> for detailed electrical specs
 
 ## Notes for this project
 

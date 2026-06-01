@@ -211,6 +211,102 @@ GND Rail (top)  ====================================================
 | 0.1uF ceramic cap           | 1        | Power decoupling                                 |
 | 9V battery + snap connector | 1        | Op-amp power supply                              |
 
+## 6-String Layout (Phase 2 — MCP6002 @ 3.3V)
+
+All 3 MCP6002s sit on **one breadboard**, in a row, with identical per-chip wiring lanes. The second breadboard is reserved for the Teensy and scratch space (and helps isolate digital from analog).
+
+This layout is a clean rebuild — board 1's existing Phase-1 wiring stays alive as a fallback while you bring up the new board.
+
+### Chip placement (single breadboard)
+
+| Chip | Col | Strings        | ADC pins |
+| ---- | --- | -------------- | -------- |
+| A    | 13  | E2 (1), A2 (2) | A0, A1   |
+| B    | 29  | D3 (3), G3 (4) | A2, A3   |
+| C    | 45  | B3 (5), E4 (6) | A4, A5   |
+
+Spacing: 16 cols between chips. Each chip + its lane (pickup at N−12, output bias at N−8, feedback at N−2, chip at N..N+3) fits in a 16-col slot. Cols 49–63 stay free.
+
+### Rail conventions
+
+| Rail       | Net        | Source                                             |
+| ---------- | ---------- | -------------------------------------------------- |
+| Top + rail | 3.3V       | jumper from Teensy 3.3V                            |
+| Top − rail | GND        | jumper from Teensy GND                             |
+| Bot + rail | 1.65V bias | sourced from one 10K-10K divider at the left edge  |
+| Bot − rail | GND        | jumper from top − rail (left edge)                 |
+
+Bot + rail carries the bias along the entire length of the board, so every gain resistor and `+IN` jumper goes to the same rail. No spaghetti — the bias jumpers all run vertically and parallel.
+
+### Per-board setup (do once)
+
+| #   | Action      | From               | To                 | Component |
+| --- | ----------- | ------------------ | ------------------ | --------- |
+| 1   | Power       | Teensy 3.3V        | top + rail         | jumper    |
+| 2   | Power       | Teensy GND         | top − rail         | jumper    |
+| 3   | GND bridge  | top − rail (col 1) | bot − rail (col 1) | jumper    |
+| 4   | Bias divide | top + rail (col 2) | bot + rail (col 2) | 10K       |
+| 5   | Bias divide | bot + rail (col 3) | top − rail (col 3) | 10K       |
+
+After step 5, bot + rail sits at 1.65V (the divider midpoint).
+
+### Per-chip setup (do once per chip — A, B, C)
+
+Notch faces **left**. Pins 1–4 on bottom side of center channel, pins 5–8 on top.
+
+| #   | Action   | From                | To         | Component             |
+| --- | -------- | ------------------- | ---------- | --------------------- |
+| 6   | VDD      | col N top (pin 8)   | top + rail | jumper                |
+| 7   | VSS      | col N+3 bot (pin 4) | bot − rail | jumper                |
+| 8   | Decouple | top + rail          | top − rail | 0.1uF, close to col N |
+
+(N = 13 for chip A, 29 for chip B, 45 for chip C.)
+
+### Per-channel template (do 6 times — once per string)
+
+Channel A = bottom side of center channel. Channel B = top side. Same column offsets relative to the chip in both cases.
+
+| #   | Component        | From                | To                       | Notes                                |
+| --- | ---------------- | ------------------- | ------------------------ | ------------------------------------ |
+| a   | jumper           | +IN pin             | bot + rail (1.65V)       | spans across center channel for ch B |
+| b   | pickup hot       | cable               | col N−12 (same side)     | enters breadboard                    |
+| c   | 10uF input cap   | col N−12            | −IN pin                  | + leg toward chip                    |
+| d   | 100K             | OUT pin             | col N−2 (same side)      | feedback ½                           |
+| e   | 100K             | col N−2 (same side) | −IN pin                  | feedback ½ (200K total)              |
+| f   | 3 × 10K parallel | −IN pin             | bot + rail               | gain (spans center channel for ch B) |
+| g   | 10uF output cap  | OUT pin             | col N−8 (same side)      | + leg toward chip                    |
+| h   | 10K              | top + rail          | col N−8 (same side)      | output bias upper                    |
+| i   | 10K              | col N−8 (same side) | top − rail or bot − rail | output bias lower                    |
+| j   | jumper           | col N−8 (same side) | Teensy A_n               | ADC out                              |
+| k   | pickup ground    | cable               | top − rail or bot − rail | (any GND point)                      |
+
+Pin reference per chip (notch left):
+
+- Channel A: OUT = col N bot (pin 1), −IN = col N+1 bot (pin 2), +IN = col N+2 bot (pin 3)
+- Channel B: OUT = col N+1 top (pin 7), −IN = col N+2 top (pin 6), +IN = col N+3 top (pin 5)
+
+### Resolved column map for all 6 strings
+
+| String | Chip       | Side   | Pickup col | Output col | ADC pin |
+| ------ | ---------- | ------ | ---------- | ---------- | ------- |
+| 1 (E2) | A (col 13) | bottom | col 1 bot  | col 5 bot  | A0      |
+| 2 (A2) | A (col 13) | top    | col 1 top  | col 5 top  | A1      |
+| 3 (D3) | B (col 29) | bottom | col 17 bot | col 21 bot | A2      |
+| 4 (G3) | B (col 29) | top    | col 17 top | col 21 top | A3      |
+| 5 (B3) | C (col 45) | bottom | col 33 bot | col 37 bot | A4      |
+| 6 (E4) | C (col 45) | top    | col 33 top | col 37 top | A5      |
+
+### Parts count for all 6 strings
+
+| Part              | Quantity | Where                                                       |
+| ----------------- | -------- | ----------------------------------------------------------- |
+| MCP6002 (DIP-8)   | 3        | One row, cols 13/29/45                                      |
+| 10K resistor      | 32       | 2 (board bias divider) + 6 × 2 (output bias) + 6 × 3 (gain) |
+| 100K resistor     | 12       | 6 × 2 (feedback as series pair)                             |
+| 10uF electrolytic | 12       | 6 × input cap + 6 × output cap                              |
+| 0.1uF ceramic     | 3        | One per chip, decoupling                                    |
+| Jumper wires      | ~30      | Power, bias, +IN to bias, ADC outs, pickup wires            |
+
 ## Troubleshooting
 
 - **ADC reads ~0 or ~4095 constantly:** DC bias is wrong. Check voltage dividers — measure the voltage at A0 with a multimeter, should be ~1.65V with no signal.
