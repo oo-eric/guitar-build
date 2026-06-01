@@ -7,10 +7,10 @@ Physical guitar build notes and decisions.
 - **Scale length:** 25.5" (standard)
 - **Body:** Korina (limba), pre-routed blank, offset shape
 - **Bridge:** Hipshot Hardtail
-- **Neck:** Pre-routed blank, modern tiltback headstock construction, SRV profile, 24 frets, 6105 (narrow tall) frets, paddle headstock (custom cut)
+- **Neck:** Pre-routed blank, modern tiltback headstock construction, SRV profile, 24 frets, 6105 (narrow-tall) nickel-silver frets, paddle headstock (custom cut)
 - **Neck wood:** Purpleheart
 - **Fretboard:** Pau ferro, 13" radius (straight) — Les Paul-ish feel, nudged flatter for bends; see "Fretboard radius" note below
-- **Pickups:** 6x Ubertar 77HC single-string pickups (bridge), P90 (neck)
+- **Pickups:** 6x Ubertar 77HC single-string pickups (bridge), TV Jones (neck)
 - **Tuning:** E standard
 
 ### Fretboard radius
@@ -103,16 +103,18 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Routing
 
-- **Rear routed** control cavity with back plate cover
-- 1x EMG Strat route at bridge — holds all 6 77HC pickups via 3D printed bracket
-- 1x P90 route at neck — traditional analog pickup
+- **Rear routed** control cavity with back plate cover — **pre-routed in blank**
+- 1x TV Jones route at neck — analog pickup — **pre-routed in blank**
+- Neck pocket — **pre-routed in blank**
+- Bridge mounting holes — **pre-drilled in blank** (fixes bridge position → fixes the string path)
+- 1x bridge route for the 6 hex pickups (3D-printed bracket) — **NOT pre-routed; cut after measuring string spacing** off the installed bridge
 - String spacing at bridge determines pickup positioning — measure before routing
 - Cavity sized generously for future control additions
 
 ## Output
 
 - **MIDI:** 7-pin DIN jack → 6 pickup signals + ground → stomp box (Teensy + op-amps)
-- **Analog:** P90 → 1/4" jack → amp/pedalboard
+- **Analog:** TV Jones (neck) → 1/4" jack → amp/pedalboard
 - Guitar itself has no active electronics — just pickups, switches, and passive wiring
 - Both outputs work simultaneously and independently
 
@@ -120,23 +122,24 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 | Part                                                    | Notes                                                                                                                                           | Acquired |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Body blank — korina (limba), pre-routed, standard scale | TBD source. Open grain — plan grain filler for finish. Limba dust is a skin/respiratory sensitizer — respirator when sanding                    | [ ]      |
-| Neck blank (tiltback, pau ferro fretboard)              | TBD source                                                                                                                                      | [ ]      |
+| Body blank — korina (limba), pre-routed, standard scale | **Ordered.** Open grain — plan grain filler for finish. Limba dust is a skin/respiratory sensitizer — respirator when sanding                   | [~]      |
+| Neck blank (tiltback, pau ferro fretboard, 13" radius)  | **Ordered.** SRV profile, 24 frets, 6105 narrow-tall nickel-silver, paddle headstock                                                            | [~]      |
 | 7-pin DIN jack (panel mount)                            | Guitar side                                                                                                                                     | [ ]      |
 | 7-pin DIN plug                                          | Cable side                                                                                                                                      | [ ]      |
 | 7-conductor shielded cable                              | Guitar to stomp box                                                                                                                             | [ ]      |
 | Hipshot Hardtail bridge                                 | Individual saddles, string-through or top-load. **Measure string spacing before routing the hex-pickup bracket** — it sets hex-pickup alignment | [ ]      |
 | Tuners                                                  | 6 inline or 3+3, match headstock                                                                                                                | [ ]      |
 | Nut (1-11/16")                                          | Match neck width                                                                                                                                | [ ]      |
-| Fret wire                                               | Match pau ferro board radius                                                                                                                    | [ ]      |
+| Fret wire — 6105 (narrow-tall), nickel-silver           | Match 13" board radius. Nickel-silver = DIY-friendly to fret/level                                                                              | [ ]      |
 | String ferrules or mounting hardware                    | Match bridge choice                                                                                                                             | [ ]      |
 
 ## Open Questions
 
-- ~~Body style~~ — offset (Jazzmaster/Mustang inspired, custom weird)
+- Body style — offset; **Jazzmaster × Iceman hybrid** (Jazzmaster comfort + Iceman swept lower horn). Outline cut from a rectangular pre-routed blank, drawn around the fixed routes. See `BODY_SHAPE.md`.
 - ~~Bridge~~ — Hipshot Hardtail
 - ~~Headstock shape~~ — paddle head, custom cut
 - ~~Number of frets~~ — 24
+- ~~Fret size & material~~ — 6105 (narrow-tall) nickel-silver. Tall crown = easy bends/vibrato (pairs with the 13" radius), narrow width = precise fretting; nickel-silver chosen for DIY-friendly fretwork over stainless.
 - ~~Neck profile~~ — SRV
 - ~~Nut width~~ — 1-11/16" (42.86mm), standard Fender. Balanced all-around feel, pairs well with the fat-D SRV profile.
 - ~~Body wood~~ — korina (limba). Warm-clear voice that pairs well with the neck P90, adds a bit of weight to balance the dense purpleheart neck, and looks striking under a transparent finish. See `WOOD_COMPARISON.md`.

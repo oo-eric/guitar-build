@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 400" width="820" height="400">
+  <title>MIDI Guitar Concept — rotated 90° CW, body + neck</title>
+
+  <!-- whole drawing rotated 90° clockwise: body on the left, neck to the right.
+       palette: korina #C9A24B body, purpleheart #6E4B91 neck -->
+  <g transform="translate(810,0) rotate(90)">
+
+    <!-- NECK (simple shape, no headstock) -->
+    <rect x="165" y="135" width="42" height="315" fill="#6E4B91"/>
+
+    <!-- BODY: flipped offset, extended upper horn for balance -->
+    <path d="M 186 440
+             C 230 422, 300 368, 330 386
+             C 350 420, 300 516, 288 568
+             C 284 640, 310 688, 284 740
+             C 264 784, 222 800, 184 804
+             C 130 810, 68 790, 58 710
+             C 50 646, 82 594, 76 550
+             C 72 500, 64 456, 88 446
+             C 122 436, 150 446, 186 440 Z"
+          fill="#C9A24B"/>
+
+  </g>
+</svg>

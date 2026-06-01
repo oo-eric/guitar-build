@@ -1,5 +1,10 @@
 # Standard (Magnetic) Pickup Selection
 
+> **DECIDED: TV Jones (neck position), Universal mount.** Hum-cancelling
+> (survives the digital noise environment), bright/chimey Filtertron voice that
+> pairs well with the warm-clear korina body, and the body blank is pre-routed
+> for it. The rest of this doc is the reasoning that led here.
+
 The build is a hybrid instrument:
 
 - **Six hex single-string pickups** → Teensy 4.0 → pitch-to-MIDI (MPE)
@@ -102,15 +107,18 @@ but more to route in an already-crowded cavity.
 
 ---
 
-## Lean for this build
+## Decision: TV Jones (neck position)
 
-A **TV Jones / Filtertron** or a **moderate-output alnico humbucker**:
+**Chosen: TV Jones / Filtertron**, Universal mount, neck position.
 
 - Hum-cancelling — survives the digital noise environment.
-- Alnico — keeps magnetic pull off the strings and hex sensors.
+- Bright/chimey Filtertron voice complements the warm-clear korina body.
+- Body blank is **pre-routed for the TV Jones** at the neck.
+- (The runner-up was a moderate-output alnico humbucker — also hum-cancelling,
+  warmer/darker. Kept here for reference if ever swapping.)
 
-If classic single-coil sparkle is the goal, use **noiseless / stacked** rather
-than a true vintage single.
+If classic single-coil sparkle had been the goal instead, the move would have
+been **noiseless / stacked** rather than a true vintage single.
 
 ### Price ranges (per pickup, street price, USD — approximate)
 
