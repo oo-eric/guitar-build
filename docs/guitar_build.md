@@ -135,13 +135,13 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Open Questions
 
-- Body style — offset; **Jazzmaster × Iceman hybrid** (Jazzmaster comfort + Iceman swept lower horn). Outline cut from a rectangular pre-routed blank, drawn around the fixed routes. See `BODY_SHAPE.md`.
+- Body style — offset; **Jazzmaster × Iceman hybrid** (Jazzmaster comfort + Iceman swept lower horn). Outline cut from a rectangular pre-routed blank, drawn around the fixed routes. See `body_shape.md`.
 - ~~Bridge~~ — Hipshot Hardtail
 - ~~Headstock shape~~ — paddle head, custom cut
 - ~~Number of frets~~ — 24
 - ~~Fret size & material~~ — 6105 (narrow-tall) nickel-silver. Tall crown = easy bends/vibrato (pairs with the 13" radius), narrow width = precise fretting; nickel-silver chosen for DIY-friendly fretwork over stainless.
 - ~~Neck profile~~ — SRV
 - ~~Nut width~~ — 1-11/16" (42.86mm), standard Fender. Balanced all-around feel, pairs well with the fat-D SRV profile.
-- ~~Body wood~~ — korina (limba). Warm-clear voice that pairs well with the neck P90, adds a bit of weight to balance the dense purpleheart neck, and looks striking under a transparent finish. See `WOOD_COMPARISON.md`.
+- ~~Body wood~~ — korina (limba). Warm-clear voice that pairs well with the neck P90, adds a bit of weight to balance the dense purpleheart neck, and looks striking under a transparent finish. See `wood_comparison.md`.
 - ~~Neck wood~~ — purpleheart
 - ~~Finish~~ — semi-transparent, DIY

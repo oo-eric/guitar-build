@@ -42,12 +42,6 @@ Validate the entire signal chain with one string before committing to a full bui
 - 1/4" analog output jack (split from buffer circuit)
 - USB-C breakout board mounted on body — wire VBUS, GND, D+, D- to Teensy USB pads, replacing the micro-USB connector
 
-### Phase 4 — Wireless / Stage Connectivity (TBD)
-
-- Teensy 4.0 does not have native Ethernet like the 4.1 — explore alternatives
-- Options: USB over long cable, wireless MIDI (BLE), or external Ethernet adapter
-- Eliminates USB cable length limitations and need for extender boxes
-
 ---
 
 ## Phase 1 Parts List

@@ -1,7 +1,7 @@
 # Tonewood Comparison — Body, Neck, Fretboard
 
 Reference for body / neck / fretboard wood choices. Current build picks are
-marked **← chosen**. See `GUITAR_BUILD.md` for the committed spec.
+marked **← chosen**. See `guitar_build.md` for the committed spec.
 
 ## A note on "tone" for this build
 

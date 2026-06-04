@@ -2,6 +2,8 @@
 
 Design notes for cutting the body outline.
 
+Concept sketch: [`brainstorm/guitar-concept.svg`](../brainstorm/guitar-concept.svg).
+
 ## Direction
 
 **Jazzmaster × Iceman hybrid** — roughly a **flipped (reverse-offset)
