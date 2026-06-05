@@ -86,16 +86,14 @@ Arduino IDE + Teensyduino. Two sketches live under `firmware/`:
 
 ## Repository layout
 
-```mermaid
-flowchart TD
-    root["guitar-build/"]
-    root --> fw["firmware/<br>Teensy sketches (adc_test = Phase 1, guitar_midi = Phase 2)"]
-    root --> docs["docs/<br>build plan, hardware references, circuit + design notes"]
-    root --> scripts["scripts/<br>host-side serial monitoring / debug tools"]
-    root --> enc["enclosure/<br>OpenSCAD models (pickup enclosure)"]
-    root --> bs["brainstorm/<br>concept sketches"]
-    root --> out["output/<br>captured stage notes / logs"]
-    root --> claude["CLAUDE.md<br>project instructions for Claude Code"]
+```text
+firmware/        Teensy sketches (adc_test = Phase 1, guitar_midi = Phase 2)
+docs/            build plan, hardware references, circuit + design notes
+scripts/         host-side serial monitoring / debug tools
+enclosure/       OpenSCAD models (pickup enclosure)
+brainstorm/      concept sketches
+output/          captured stage notes / logs
+CLAUDE.md        project instructions for Claude Code
 ```
 
 ## Documentation
