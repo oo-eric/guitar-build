@@ -27,12 +27,14 @@ shape as the base; Iceman lower-horn sweep for attitude; nothing pointy.
   outline is drawn _around_ these fixed reference points — they can't move:
   - **TV Jones route** at neck (analog pickup) — pre-routed
   - **Neck pocket** — pre-routed
-  - **Rear control cavity** — pre-routed
   - **Bridge mounting holes** — pre-drilled → fixes bridge position and the
     string path/centerline
-- **Not pre-cut (you do it later):** the bridge route for the 6 hex pickups —
-  cut after measuring string spacing off the installed bridge. Leave that area
-  open and don't let the lower horn / contours encroach on it.
+- **Not pre-cut (you do it later):**
+  - **Rear control cavity** — omitted from the order (no upcharge); route it
+    yourself after the outline is drawn so it fits the final control layout
+  - **The bridge route** for the 6 hex pickups —
+    cut after measuring string spacing off the installed bridge. Leave that area
+    open and don't let the lower horn / contours encroach on it.
 - **Locate and mark the pre-cut routes, the bridge holes, and the resulting
   string centerline first**, then draw the outline to fit them. The drilled
   bridge holes + neck pocket pin the whole layout — work outward from them.

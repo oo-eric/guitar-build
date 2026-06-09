@@ -103,13 +103,19 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Routing
 
-- **Rear routed** control cavity with back plate cover — **pre-routed in blank**
+- **Rear routed** control cavity with back plate cover — **NOT pre-routed; omitted from the order (no upcharge), cut yourself after drawing the outline** so it fits the final control layout
 - 1x TV Jones route at neck — analog pickup — **pre-routed in blank**
 - Neck pocket — **pre-routed in blank**
 - Bridge mounting holes — **pre-drilled in blank** (fixes bridge position → fixes the string path)
 - 1x bridge route for the 6 hex pickups (3D-printed bracket) — **NOT pre-routed; cut after measuring string spacing** off the installed bridge
 - String spacing at bridge determines pickup positioning — measure before routing
 - Cavity sized generously for future control additions
+- **Rear cavity depth — target ~22–25 mm (≈1").** Real driver is the deepest
+  top-mounted component body (mini-toggle or pot) below the top face + ~3–5 mm
+  wire/solder clearance. Keep a **≥5 mm floor** under the cavity for strength.
+  **Measure on arrival:** mic the blank thickness and the deepest component, then
+  set depth = (component protrusion + clearance), confirm floor ≥5 mm before
+  routing. Korina ~44 mm thick leaves plenty of margin.
 
 ## Output
 
