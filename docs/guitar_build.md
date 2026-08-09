@@ -10,7 +10,7 @@ Physical guitar build notes and decisions.
 - **Neck:** Pre-routed blank, modern tiltback headstock construction, SRV profile, 24 frets, 6105 (narrow-tall) nickel-silver frets, paddle headstock (custom cut)
 - **Neck wood:** Purpleheart
 - **Fretboard:** Pau ferro, 13" radius (straight) — Les Paul-ish feel, nudged flatter for bends; see "Fretboard radius" note below
-- **Pickups:** 6x Ubertar 77HC single-string pickups (bridge), TV Jones (neck)
+- **Pickups:** 6x Ubertar 77HC single-string pickups (bridge), Porter Pickups Filtertron-sized (neck)
 - **Tuning:** E standard
 
 ### Fretboard radius
@@ -99,12 +99,14 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 - 6 toggle switches — individual pickup on/off
 - 3 knobs — volume + TBD (tone, MIDI CC, etc.)
-- 7-pin DIN jack — signal out to stomp box
+- **13-pin DIN jack (Roland GK standard)** — signal out to stomp box.
+  Carries the six hex signals _and_ the magnetic pickup on one cable.
 
 ## Routing
 
 - **Rear routed** control cavity with back plate cover — **NOT pre-routed; omitted from the order (no upcharge), cut yourself after drawing the outline** so it fits the final control layout
-- 1x TV Jones route at neck — analog pickup — **pre-routed in blank**
+- 1x Filtertron-sized route at neck — analog pickup — **pre-routed in blank**
+  (ordered as a TV Jones route; the Porter is the same size and drops in)
 - Neck pocket — **pre-routed in blank**
 - Bridge mounting holes — **pre-drilled in blank** (fixes bridge position → fixes the string path)
 - 1x bridge route for the 6 hex pickups (3D-printed bracket) — **NOT pre-routed; cut after measuring string spacing** off the installed bridge
@@ -119,10 +121,16 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Output
 
-- **MIDI:** 7-pin DIN jack → 6 pickup signals + ground → stomp box (Teensy + op-amps)
-- **Analog:** TV Jones (neck) → 1/4" jack → amp/pedalboard
-- Guitar itself has no active electronics — just pickups, switches, and passive wiring
+- **One cable out: 13-pin DIN (Roland GK standard)** → stomp box (Teensy +
+  op-amps). Hex signals on pins 1–6, ground on 7, **magnetic pickup on pin 8**
+  — the GK standard has a dedicated pin for exactly that, so the Porter rides
+  the same cable instead of needing its own.
+- **Analog:** Porter (neck) → pin 8 → 1/4" jack **on the stomp box** →
+  amp/pedalboard
+- Guitar itself has no active electronics — just pickups, switches, and passive
+  wiring. Pins 9/10 (±7V in the GK standard) are left unconnected.
 - Both outputs work simultaneously and independently
+- Full pin table and rationale: `plan.md` → "13-Pin Interface"
 
 ## Parts Needed
 
@@ -130,9 +138,9 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | Body blank — korina (limba), pre-routed, standard scale | **Ordered.** Open grain — plan grain filler for finish. Limba dust is a skin/respiratory sensitizer — respirator when sanding                   | [~]      |
 | Neck blank (tiltback, pau ferro fretboard, 13" radius)  | **Ordered.** SRV profile, 24 frets, 6105 narrow-tall nickel-silver, paddle headstock                                                            | [~]      |
-| 7-pin DIN jack (panel mount)                            | Guitar side                                                                                                                                     | [ ]      |
-| 7-pin DIN plug                                          | Cable side                                                                                                                                      | [ ]      |
-| 7-conductor shielded cable                              | Guitar to stomp box                                                                                                                             | [ ]      |
+| 13-pin DIN jack (panel mount), GK standard              | **×2** — one on the guitar, one on the stomp box. ~$10–15 each                                                                                  | [ ]      |
+| 13-pin GK cable                                         | Guitar to stomp box. Buy, don't build — that's the whole reason for conforming to the standard. Roland ~$30–60, third-party ~$20–30             | [ ]      |
+| Hammond 1590DD enclosure                                | Stomp box. ~188 × 120 mm — clears the 82 × 156 mm board. 1590BB / 1590XX are too small                                                          | [ ]      |
 | Hipshot Hardtail bridge                                 | Individual saddles, string-through or top-load. **Measure string spacing before routing the hex-pickup bracket** — it sets hex-pickup alignment | [ ]      |
 | Tuners                                                  | 6 inline or 3+3, match headstock                                                                                                                | [ ]      |
 | Nut (1-11/16")                                          | Match neck width                                                                                                                                | [ ]      |

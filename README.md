@@ -7,8 +7,13 @@ the MPE (MIDI Polyphonic Expression) standard so every string lives on its own
 channel and bends independently.
 
 It's a _hybrid_ instrument: alongside the six hex pickups there's one standard
-magnetic pickup wired straight to a 1/4" jack, so it still plays and sounds like
-a normal guitar through an amp while the digital side drives soft synths.
+magnetic pickup, so it still plays and sounds like a normal guitar through an amp
+while the digital side drives synths.
+
+The electronics don't live in the guitar. The body carries pickups and a single
+**13-pin (Roland GK standard) socket**; everything else — preamp, Teensy, MIDI
+OUT, jacks — lives in a stompbox on the floor. The guitar end is entirely
+passive.
 
 ## Status
 
@@ -20,7 +25,9 @@ a normal guitar through an amp while the digital side drives soft synths.
   one at a time on the breadboard. Single string is working end-to-end on the new
   MCP6002 buffer (no battery). Threshold calibration and per-string gain in
   progress.
-- **Phase 3 (planned):** mount pickups and electronics into a real guitar body.
+- **Phase 3 (planned):** pickups into a real guitar body; everything else into a
+  stompbox enclosure, linked by a 13-pin cable. PCB designed and DRC-clean,
+  waiting on a cable test before fabrication.
 - **Future exploration:** an MPU-6050 accelerometer/gyro on the body or neck to
   turn physical gestures (tilt, shake, orientation) into MIDI CC.
 
@@ -30,12 +37,25 @@ See [`docs/plan.md`](docs/plan.md) for the full phased plan and parts list.
 
 ```mermaid
 flowchart LR
-    S["Guitar string"] --> P["77HC hex pickup<br>(one per string)"]
-    P --> B["MCP6002 buffer + gain<br>(3.3V from Teensy, no battery)"]
-    B --> ADC["Teensy 4.0<br>analog pin A0-A5"]
-    ADC --> DSP["Onset detection →<br>YIN pitch → MPE MIDI"]
-    DSP --> USB["micro-USB"]
-    USB --> C["Computer / DAW<br>(sees a MIDI device)"]
+    subgraph G["Guitar (passive)"]
+        S["Guitar string"] --> P["77HC hex pickup<br>×6"]
+        M["Porter magnetic<br>pickup"]
+    end
+    P --> K["13-pin GK cable<br>hex on pins 1-6, magnetic on pin 8"]
+    M --> K
+    subgraph BOX["Stomp box"]
+        B["MCP6002 preamp<br>6ch, 46x, 3.3V from Teensy"]
+        ADC["Teensy 4.0<br>A0-A5"]
+        DSP["Onset → YIN pitch<br>→ MPE MIDI"]
+        B --> ADC --> DSP
+    end
+    K --> B
+    K --> J["1/4&quot; jack<br>(passive passthrough)"]
+    DSP --> DIN["MIDI OUT<br>5-pin DIN"]
+    DSP --> USB["USB-C"]
+    DIN --> SY["Hardware synth<br>(stage)"]
+    USB --> C["Computer / DAW<br>(desk)"]
+    J --> AMP["Amp"]
 ```
 
 ## Hardware
@@ -44,18 +64,24 @@ flowchart LR
 - **Ubertar 77HC** single-string ("hexaphonic") pickups ×6
 - **MCP6002** rail-to-rail op-amps ×3 (dual channel each = 6 buffer/gain stages),
   running on 3.3V from the Teensy — replaced the original TL072 + 9V battery
-- One standard magnetic pickup (TV Jones, neck) → 1/4" jack for analog tone
-- Breadboard prototype today; guitar body integration is Phase 3
+- **Porter Pickups** Filtertron-sized humbucker (neck) → 13-pin pin 8 → 1/4" jack
+  for analog tone. Boise-made
+- **Custom PCB** — 82 × 156 mm, 2-layer, all through-hole. Generated from
+  scripts, not hand-drawn; see `hardware/` and `scripts/`
+- Breadboard prototype today; the board is designed but not yet fabricated
 
-Buffer circuit schematic and breadboard layout: [`docs/buffer_circuit.md`](docs/buffer_circuit.md).
-Current wiring notes: [`docs/wip.md`](docs/wip.md).
+Circuit of record: [`docs/buffer_circuit.md`](docs/buffer_circuit.md).
+Stomp box design: [`docs/stompbox/`](docs/stompbox/README.md).
 
 ## Firmware
 
-Arduino IDE + Teensyduino. Two sketches live under `firmware/`:
+Arduino IDE + Teensyduino. Under `firmware/`:
 
 - **`firmware/adc_test/`** — Phase 1 single-string sketch. Uses the Teensy Audio
   library + USB Audio for monitoring; YIN pitch detection.
+- **`firmware/experiments/`** — sketches that are **not** part of the MIDI signal
+  chain and aren't headed for the pedal. Currently the ILI9341 waveform display,
+  parked as a bench tool. Its README records why.
 - **`firmware/guitar_midi/`** — Phase 2 modular 6-string firmware. MIDI only
   (no USB Audio). Components:
   - `config.h` — all tunable constants (thresholds, sample rate, MIDI, per-string)
@@ -87,25 +113,35 @@ Arduino IDE + Teensyduino. Two sketches live under `firmware/`:
 ## Repository layout
 
 ```text
-firmware/        Teensy sketches (adc_test = Phase 1, guitar_midi = Phase 2)
+firmware/        Teensy sketches
+  adc_test/        Phase 1 single-string
+  guitar_midi/     Phase 2 modular 6-string (the real one)
+  experiments/     parked, not in the signal chain
+hardware/        KiCad schematic + PCB — GENERATED, do not hand-edit
 docs/            build plan, hardware references, circuit + design notes
-scripts/         host-side serial monitoring / debug tools
+  stompbox/        enclosure: power, controls, pin map, prior art
+scripts/         KiCad generators + host-side serial/debug tools
 enclosure/       OpenSCAD models (pickup enclosure)
 brainstorm/      concept sketches
 output/          captured stage notes / logs
 CLAUDE.md        project instructions for Claude Code
 ```
 
+`hardware/` is generated by `scripts/gen_kicad_schematic.py` and
+`scripts/gen_kicad_pcb.py`. Regenerate in order — schematic →
+`check_kicad_netlist.py` → PCB — and never hand-edit the KiCad files.
+
 ## Documentation
 
-| Doc                                                          | What's in it                                                 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [`docs/plan.md`](docs/plan.md)                               | Phased build plan, parts list, signal chain, technical notes |
-| [`docs/guitar_build.md`](docs/guitar_build.md)               | Physical build specs and decisions                           |
-| [`docs/body_shape.md`](docs/body_shape.md)                   | Body outline design (Jazzmaster × Iceman hybrid)             |
-| [`docs/wood_comparison.md`](docs/wood_comparison.md)         | Body / neck / fretboard tonewood comparison                  |
-| [`docs/pickup_selection.md`](docs/pickup_selection.md)       | Standard magnetic pickup selection (TV Jones)                |
-| [`docs/buffer_circuit.md`](docs/buffer_circuit.md)           | Buffer/amp circuit schematic and breadboard layout           |
-| [`docs/wip.md`](docs/wip.md)                                 | Current breadboard wiring details                            |
-| [`docs/teensy-4.0.md`](docs/teensy-4.0.md)                   | Teensy 4.0 pinout / reference                                |
-| [`docs/ubertar-77hc-pickup.md`](docs/ubertar-77hc-pickup.md) | Ubertar 77HC pickup reference                                |
+| Doc                                                          | What's in it                                                     |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| [`docs/plan.md`](docs/plan.md)                               | Phased build plan, parts list, signal chain, technical notes     |
+| [`docs/guitar_build.md`](docs/guitar_build.md)               | Physical build specs and decisions                               |
+| [`docs/body_shape.md`](docs/body_shape.md)                   | Body outline design (Jazzmaster × Iceman hybrid)                 |
+| [`docs/wood_comparison.md`](docs/wood_comparison.md)         | Body / neck / fretboard tonewood comparison                      |
+| [`docs/pickup_selection.md`](docs/pickup_selection.md)       | Standard magnetic pickup selection (Porter Pickups)              |
+| [`docs/buffer_circuit.md`](docs/buffer_circuit.md)           | **Circuit of record** — schematic, values, BOM, bring-up         |
+| [`docs/stompbox/`](docs/stompbox/README.md)                  | Stomp box: I/O, power, controls, Teensy pin map, prior art       |
+| [`docs/wip.md`](docs/wip.md)                                 | ⚠️ Historical Phase-1 breadboard wiring (TL072 + 9V). Superseded |
+| [`docs/teensy-4.0.md`](docs/teensy-4.0.md)                   | Teensy 4.0 pinout / reference                                    |
+| [`docs/ubertar-77hc-pickup.md`](docs/ubertar-77hc-pickup.md) | Ubertar 77HC pickup reference                                    |

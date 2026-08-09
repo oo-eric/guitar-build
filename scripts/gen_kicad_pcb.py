@@ -418,7 +418,18 @@ def build():
                           f"Rg={rg} Rbias={rbias} Cin={cin} J={jack}")
 
     # ---- decoupling + 3V3 spine -----------------------------------------
-    dec = sorted(parts_on("+3V3", "C"))
+    # Split by value, not by slicing: the rail also carries a bulk
+    # electrolytic, and indexing the first three of a sorted list would
+    # silently drop whichever cap sorted last.
+    caps_3v3 = sorted(parts_on("+3V3", "C"))
+    dec = [c for c in caps_3v3 if values[c] == "100n"]
+    rail_bulk = [c for c in caps_3v3 if c not in dec]
+    if len(dec) != len(CYS):
+        sys.exit(f"expected {len(CYS)} 100n decoupling caps on +3V3, "
+                 f"got {[(c, values[c]) for c in dec]}")
+    if len(rail_bulk) != 1:
+        sys.exit(f"expected 1 bulk cap on +3V3, got "
+                 f"{[(c, values[c]) for c in rail_bulk]}")
     for chip, cy in enumerate(CYS):
         c = dec[chip]
         b.place(c, footprints[c], (CX - 7.7, cy - 7.62), 180, values[c],
@@ -471,6 +482,15 @@ def build():
     px3 = hdr_pin_x[[p for p in hdr_pin_x if net_of(hdr, p) == "+3V3"][0]]
     b.track([(CX - 7.7, CYS[2] - 7.62), (CX - 7.7, HY - 7.0),
              (px3, HY - 7.0), (px3, HY)], "+3V3", width=POWER_TRACK)
+
+    # Bulk cap sits on that run, close to where +3V3 actually enters the
+    # board from the Teensy — bulk belongs at the supply entry, not out at
+    # the far end past the three chips. It hangs left off the spine so its
+    # GND pad reaches the pour without crossing the ADC fan, which owns
+    # every lane below x = 32.
+    cbulk = rail_bulk[0]
+    b.place2(cbulk, footprints[cbulk], (CX - 7.7, 144.0), (-1, 0),
+             "+3V3", values[cbulk], pin_net)
 
     # Each ADC: horizontal at its source y, then straight down to its pin.
     paths, order = [], []

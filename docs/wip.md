@@ -1,7 +1,33 @@
+# Breadboard wiring — HISTORICAL
+
+> ## ⚠️ Do not build from this page.
+>
+> This documents the **superseded Phase-1 circuit**: TL072 running on a 9V
+> battery. That circuit was replaced by the MCP6002 running on 3.3V from the
+> Teensy — no battery — and the two are not interchangeable. The TL072 needs 7V+
+> and a weak battery produced distorted output; the MCP6002 also roughly halves
+> the output swing, so the onset/offset thresholds differ too.
+>
+> **The circuit of record is [`buffer_circuit.md`](buffer_circuit.md).** For the
+> built version, `hardware/` holds the generated KiCad schematic and PCB, and
+> `scripts/check_kicad_netlist.py` asserts that the netlist matches the doc.
+>
+> **It also contains a known error.** Step 4 of the last section routes the gain
+> resistors correctly to the input bias point (col 21), but an earlier revision
+> of this page sent them to the output chain (col 30), which shorts the output to
+> the inverting input. Related: the Phase-1 breadboard fed the pickup into −IN,
+> making the circuit inverting — gain then stops matching `1 + Rf/Rg` and starts
+> tracking pickup impedance. See the reconciliation section of
+> `buffer_circuit.md`.
+>
+> Kept as a record of how the prototype was actually wired, not as instructions.
+
+---
+
 1. 10K resistor #1: One leg from the Teensy 3.3V row (col 3) to col 20
 2. 10K resistor #2: One leg in col 20, other leg to the GND rail
-4. Jumper wire: From col 20 to the Teensy A0 row (col 13)
-5. Jumper wire: From Teensy GND (col 2) to GND rail
+3. Jumper wire: From col 20 to the Teensy A0 row (col 13)
+4. Jumper wire: From Teensy GND (col 2) to GND rail
 
 ---
 

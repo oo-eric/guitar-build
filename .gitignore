@@ -1,2 +1,16 @@
 .claude
 *.pyc
+
+# macOS
+.DS_Store
+
+# KiCad — local state and regenerable artifacts
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-drc.rpt
+
+# Upload bundle for an external tool; regenerable, and not the source of truth
+hardware/Archive.zip

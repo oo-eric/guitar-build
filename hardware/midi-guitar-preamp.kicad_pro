@@ -1,0 +1,19 @@
+{
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "lib_footprint_mismatch": "ignore"
+      }
+    }
+  },
+  "erc": {
+    "rule_severities": {
+      "lib_symbol_mismatch": "ignore",
+      "lib_symbol_issues": "ignore"
+    }
+  },
+  "meta": { "filename": "midi-guitar-preamp.kicad_pro", "version": 1 },
+  "schematic": { "legacy_lib_dir": "", "legacy_lib_list": [] },
+  "sheets": [],
+  "text_variables": {}
+}

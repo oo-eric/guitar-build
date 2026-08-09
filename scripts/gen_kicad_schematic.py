@@ -27,6 +27,7 @@ R_BIAS_IN = "1M"         # Rbias, sets input impedance
 C_IN = "100n"            # Cin, film/C0G (NOT electrolytic)
 R_DIVIDER = "10k"        # bias divider halves
 C_BIAS_BULK = "100u"     # VBIAS bulk bypass
+C_RAIL_BULK = "10u"      # +3V3 bulk bypass (datasheet wants >=1uF on the rail)
 C_BYPASS = "100n"        # decoupling
 
 # THT throughout: matches the DIP-8 MCP6002 and axial passives already on hand,
@@ -563,6 +564,20 @@ def power_block(ox, oy):
         route((dx, cy - 12.7), c("1"))
         route(c("2"), (dx, cy + 2.54))
         gnd((dx, cy + 2.54))
+
+    # --- +3V3 rail bulk bypass --------------------------------------------
+    # The three 100n caps above are per-chip decoupling; they handle the fast
+    # transients but not the low-frequency sag. The MCP6002 datasheet also
+    # wants bulk capacitance on the rail itself. Its own stub to +3V3/GND
+    # rather than a tap off a chip, so it stays independent of chip placement.
+    bx, by = ox + 108.0, oy + 81.28
+    cb = place("Device:C_Polarized", ref("C"), C_RAIL_BULK, (bx, by - 5.08),
+               footprint=FP_C_ELEC,
+               ref_off=(2.54, -2.54), val_off=(2.54, 2.54))
+    route(cb("1"), (bx, by - 12.7))
+    v33((bx, by - 12.7))
+    route(cb("2"), (bx, by + 2.54))
+    gnd((bx, by + 2.54))
 
     # --- ERC power-source flags -------------------------------------------
     # Supply arrives from the Teensy, not a regulator, so without these ERC

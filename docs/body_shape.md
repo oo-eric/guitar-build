@@ -25,7 +25,8 @@ shape as the base; Iceman lower-horn sweep for attitude; nothing pointy.
   outer shape.
 - **Some features are already cut/drilled and positioned for 25.5" scale.** The
   outline is drawn _around_ these fixed reference points — they can't move:
-  - **TV Jones route** at neck (analog pickup) — pre-routed
+  - **Filtertron-sized route** at neck (analog pickup) — pre-routed. Ordered as
+    a TV Jones route; the Porter that was actually bought is the same size.
   - **Neck pocket** — pre-routed
   - **Bridge mounting holes** — pre-drilled → fixes bridge position and the
     string path/centerline
@@ -67,8 +68,9 @@ the headstock → real neck-dive risk.
 
 ### 3. Control real estate
 
-- Lots to place: **6 toggle switches, 3 knobs, 7-pin DIN jack**, plus the rear
-  cavity.
+- Lots to place: **6 toggle switches, 3 knobs, 13-pin DIN jack**, plus the rear
+  cavity. The 13-pin GK socket is physically larger than a 1/4" jack — check
+  its panel cutout and depth against the cavity before committing the outline.
 - A larger lower bout (which the Iceman direction gives) helps here — just make
   sure the swept lower horn doesn't eat into where the controls and rear cavity
   need to live. Mock up the control layout on the outline before cutting.

@@ -1,9 +1,12 @@
 # Standard (Magnetic) Pickup Selection
 
-> **DECIDED: TV Jones (neck position), Universal mount.** Hum-cancelling
+> **ACQUIRED: Porter Pickups, Filtertron-sized (neck position).** Bought
+> 2026-08-08. Same reasoning as the TV Jones it replaces — hum-cancelling
 > (survives the digital noise environment), bright/chimey Filtertron voice that
-> pairs well with the warm-clear korina body, and the body blank is pre-routed
-> for it. The rest of this doc is the reasoning that led here.
+> pairs well with the warm-clear korina body, and it drops into the rout the
+> body blank already has. Porter is a Boise shop, which was the tiebreaker.
+> The rest of this doc is the reasoning that led here; §"Decision" records
+> what actually got bought.
 
 The build is a hybrid instrument:
 
@@ -66,6 +69,10 @@ pickup attaches.
 standard rings, most available hardware). Only pick the eared English mount
 for the Gretsch aesthetic or an existing Gretsch-style route.
 
+> The above is TV Jones' own naming. The Porter that was actually bought is
+> Filtertron-sized and goes in the same rout — confirm which mount style it
+> shipped with before ordering a ring.
+
 ## 3. Magnetic interaction
 
 Strong magnets (ceramic humbuckers, P90 bar magnets) close to the strings
@@ -107,15 +114,24 @@ but more to route in an already-crowded cavity.
 
 ---
 
-## Decision: TV Jones (neck position)
+## Decision: Porter Pickups, Filtertron-sized (neck position)
 
-**Chosen: TV Jones / Filtertron**, Universal mount, neck position.
+**Bought: Porter Pickups**, Filtertron-sized, neck position. Acquired
+2026-08-08. _(Exact model and magnet spec: TBD — fill in from the order.)_
+
+The type decision never changed — this is the same Filtertron-sized,
+hum-cancelling voice the doc argued for all along. Only the maker changed.
 
 - Hum-cancelling — survives the digital noise environment.
 - Bright/chimey Filtertron voice complements the warm-clear korina body.
-- Body blank is **pre-routed for the TV Jones** at the neck.
-- (The runner-up was a moderate-output alnico humbucker — also hum-cancelling,
-  warmer/darker. Kept here for reference if ever swapping.)
+- Filtertron-sized, so it uses the rout the body blank already has.
+- **Porter is based in Boise** — local shop, wound to order. That decided it
+  over TV Jones, which was the prior pick on identical tonal grounds.
+- (The runner-up type was a moderate-output alnico humbucker — also
+  hum-cancelling, warmer/darker. Kept here for reference if ever swapping.)
+
+**Superseded:** TV Jones / Filtertron, Universal mount. Same voice, same
+position, same rout — see the price comparison below for how the two stack up.
 
 If classic single-coil sparkle had been the goal instead, the move would have
 been **noiseless / stacked** rather than a true vintage single.
@@ -134,11 +150,18 @@ been **noiseless / stacked** rather than a true vintage single.
 - Mainstream (Seymour Duncan, DiMarzio, Gibson): **~$80–140**
 - Boutique (Lollar, Bare Knuckle, Wolfetone, Fralin): **~$150–300+**
 
+**Porter Pickups** — small-shop, wound to order, Boise:
+
+- Filtertron-sized models: **roughly boutique-adjacent**, in the same
+  neighborhood as TV Jones. _(Actual paid price: TBD — fill in from the order.)_
+
 **Bottom line:** a TV Jones sits in good-name-brand-to-boutique territory
 (~$150–200). A mainstream alnico humbucker is roughly half to two-thirds the
 cost; the TV Jones premium buys the Filtertron voice specifically. Since this
 build needs only **one** pickup, the absolute difference is modest (~$60–100) —
-let tone preference drive the choice, not price.
+let tone preference drive the choice, not price. That's how this landed on
+Porter: the price delta was never the deciding factor, so a local winder
+offering the same voice won on other grounds.
 
 ### Open questions that would sharpen the choice
 

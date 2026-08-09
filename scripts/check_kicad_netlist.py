@@ -295,6 +295,22 @@ bulk = [r for r, _ in vbias_pins if r.startswith("C")]
 check(len(bulk) >= 2,
       f"VBIAS needs bulk + ceramic bypass, found {[(r, values[r]) for r in bulk]}")
 
+# +3V3 rail: three 100n per-chip decoupling caps, plus one bulk electrolytic.
+# The bulk cap is the one the MCP6002 datasheet asks for on the rail itself;
+# the 100n caps alone do not cover low-frequency sag.
+rail_caps = {r for (r, n) in pins
+             if r.startswith("C") and net_of(r, n) == "+3V3"}
+rail_bulk = sorted(r for r in rail_caps if values[r].endswith("u"))
+check(len(rail_bulk) == 1,
+      f"expected exactly 1 bulk electrolytic on +3V3, got "
+      f"{[(r, values[r]) for r in rail_bulk]}")
+# ...and its other leg must land on GND, not somewhere unhelpful
+for r in rail_bulk:
+    other = {net_of(r, n) for (ref, n) in pins
+             if ref == r and net_of(r, n) != "+3V3"}
+    check(other == {"GND"},
+          f"{r}: bulk cap's return leg should be GND, it reaches {other}")
+
 # every op-amp unit 3 present
 for u in ("U1", "U2", "U3"):
     check(any(r == u and unit == 3 for r, _, unit in placed),

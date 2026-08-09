@@ -37,10 +37,20 @@ Validate the entire signal chain with one string before committing to a full bui
 
 ### Phase 3 — Guitar Body Integration
 
-- Mount pickups and electronics into an actual guitar body
-- Final wiring, enclosure, and physical build
-- 1/4" analog output jack (split from buffer circuit)
-- USB-C breakout board mounted on body — wire VBUS, GND, D+, D- to Teensy USB pads, replacing the micro-USB connector
+**Architecture decision (2026-08-09): the electronics do NOT live in the guitar.**
+The preamp board is 82 × 156 mm and was never going to fit a control cavity.
+Instead the guitar carries only pickups and a 13-pin socket, and everything
+else lives in a stompbox-style enclosure connected by a **standard 13-pin
+(Roland GK) cable**.
+
+- Mount pickups in the body; wire all six hex outputs plus the magnetic
+  pickup to a panel-mount 13-pin DIN socket
+- Preamp board + Teensy go in the enclosure (see [13-Pin Interface](#13-pin-interface))
+- 1/4" analog output jack on the enclosure (split from buffer circuit)
+- USB-C breakout on the **enclosure**, not the body — wire VBUS, GND, D+, D-
+  to the Teensy USB pads, replacing the micro-USB connector
+- Enclosure: a Hammond **1590DD** (~188 × 120 mm) clears the 82 × 156 mm
+  board. The 1590BB and 1590XX are both too small.
 
 ---
 
@@ -98,18 +108,87 @@ Switching from TL072 (needs 7V+) to MCP6002 (runs on 1.8-6V, rail-to-rail). Powe
 ## Signal Chain
 
 ```
-Guitar String
-    |
-[77HC Pickup]
-    |
-[1/4" Jack] --> [MCP6002 Buffer Circuit] --> [Teensy 4.0 Analog Pin]
-                 (powered by Teensy 3.3V)          |
-                                             [Teensy 4.0]
-                                                   |
-                                             [micro-USB to Computer]
-                                                   |
-                                           DAW sees MIDI device
+                GUITAR                    |            ENCLOSURE
+                                          |
+Guitar String                             |
+    |                                     |
+[77HC Pickup] x6 ------.                  |
+                       |                  |
+[Porter magnetic] -----+--> [13-pin  ]====|==> [13-pin ] --+--> [1/4" Jack] (magnetic)
+                            [ socket ]  cable  [ socket ]  |
+                                          |                '--> [MCP6002 Preamp]
+                                          |                      (Teensy 3.3V)
+                                          |                          |
+                                          |                     [Teensy 4.0] --> [USB-C]
+                                          |                                          |
+                                          |                                DAW sees MIDI device
 ```
+
+The guitar end is **entirely passive** — pickups and a socket, no power, no
+active parts. See [13-Pin Interface](#13-pin-interface) for the open question
+about whether buffers eventually move guitar-side.
+
+## 13-Pin Interface
+
+Guitar-to-enclosure link uses the **standard 13-pin Roland GK connector and
+pin assignment**. Own pinout was considered and rejected: conforming costs
+nothing, and it makes cables a thing you buy rather than build.
+
+> **Verify the pin numbers against a published GK reference before ordering a
+> PCB or drilling a panel.** The assignment below is the widely-used de-facto
+> standard, not an official Roland-published spec, and a wrong hole in an
+> enclosure is annoying but a wrong trace on a board is a reorder.
+
+| Pin | GK standard       | This build                                 |
+| --- | ----------------- | ------------------------------------------ |
+| 1   | String 6 (low E)  | Hex channel → ADC                          |
+| 2   | String 5 (A)      | Hex channel → ADC                          |
+| 3   | String 4 (D)      | Hex channel → ADC                          |
+| 4   | String 3 (G)      | Hex channel → ADC                          |
+| 5   | String 2 (B)      | Hex channel → ADC                          |
+| 6   | String 1 (high E) | Hex channel → ADC                          |
+| 7   | Ground            | Common ground                              |
+| 8   | Normal pickup     | **Porter magnetic → 1/4" jack.** Free fit. |
+| 9   | +7V               | _Unused._ Guitar end is passive.           |
+| 10  | −7V               | _Unused._ Guitar end is passive.           |
+| 11  | S1 (switch)       | _Unused._ Reserved for future control.     |
+| 12  | S2 (switch)       | _Unused._ Reserved for future control.     |
+| 13  | Volume            | _Unused._ Reserved for future control.     |
+
+**String-to-ADC direction is not yet decided.** `config.h` maps string index 0
+to `A0`, but nothing states whether index 0 is low E or high E. Pick one and
+write it down before the cable is wired — it is a one-line firmware change
+now and a rewiring job later.
+
+### Why conforming is safe
+
+Both mis-plug directions are harmless, which is the argument for the standard
+over a custom pinout:
+
+- **This guitar into real GK gear** — the synth puts ±7V on pins 9/10, which
+  connect to nothing here. The hex pickups would be read at the wrong levels
+  and impedance, so it would behave oddly, but nothing is damaged.
+- **A real GK guitar into this enclosure** — it expects ±7V to run its
+  internal preamp, does not get it, and stays silent. Also harmless.
+
+### Open item: buffering
+
+Pins 9/10 stay unused **only while the guitar end is passive**, which means the
+raw ~0.1 Vpp pickup signal travels the full cable into a 1 MΩ input. The risks,
+worst first: **crosstalk** between six unbuffered high-impedance lines sharing
+one jacket (this attacks per-string pitch detection directly), **hum**, and
+HF rolloff (least concerning — already low-passing at 4.8 kHz).
+
+Every commercial hex system, GK included, buffers at the guitar. Whether this
+one needs to is an empirical question, and there is a cheap test:
+
+> Put a few metres of cable between one pickup and the breadboard preamp.
+> Compare idle RMS against the current ~0.014 and check that pitch tracking
+> still holds. If idle barely moves, the passive guitar end stands.
+
+If it fails, guitar-side buffers become necessary and pins 9/10 exist for
+exactly that — though note the Teensy cannot produce ±7V, so a conforming
+supply would need a charge pump or small dual supply in the enclosure.
 
 ## Software Stack
 
@@ -163,6 +242,22 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 - **USB audio:** Teensy supports "Serial + MIDI + Audio" USB type, allowing combined MIDI + raw audio over a single USB cable. The DAW sees both a MIDI instrument and an audio input from one device.
 
 **USB Audio: Implemented.** Teensy Audio library streams combined pickup audio over USB (Arduino IDE USB Type = "Serial + MIDI + Audio"). Computer sees both a MIDI device and an audio input from one USB connection. The 1/4" analog jack remains a Phase 3 addition for the physical build.
+
+### The magnetic pickup is a passive pass-through
+
+**Pin 8 never touches the preamp board.** It enters the enclosure and goes
+straight to the 1/4" jack. Two reasons:
+
+1. The board has exactly six inputs (J1–J6 → A0–A5). There is no seventh.
+2. Every channel is a **46× gain stage** sized for a ~0.1 Vpp hex pickup. A
+   Filtertron-sized humbucker puts out roughly 0.5–1 Vpp — an order of
+   magnitude hotter. Through 46× into a 3.3V rail it clips to a square wave.
+
+**Open — deferred 2026-08-09:** whether to also digitize the magnetic pickup so
+it reaches the DAW over USB alongside the MIDI. It is a real option but it is a
+**seventh channel at roughly unity gain**, which means a board revision, not a
+wiring change. Not scoped yet. In the meantime the analog jack feeds an audio
+interface, which covers the desk case.
 
 ---
 
