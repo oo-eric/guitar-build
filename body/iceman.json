@@ -1,0 +1,11 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "$fn": "102",
+            "body_width": "340",
+            "soften": "20",
+            "thickness": "45"
+        }
+    }
+}
