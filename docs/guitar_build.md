@@ -97,10 +97,33 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Controls
 
-- 6 toggle switches — individual pickup on/off
-- 3 knobs — volume + TBD (tone, MIDI CC, etc.)
-- **13-pin DIN jack (Roland GK standard)** — signal out to stomp box.
-  Carries the six hex signals _and_ the magnetic pickup on one cable.
+**Full wiring, values and rationale: [`guitar_wiring.md`](guitar_wiring.md).**
+Summary only here.
+
+Three knobs, two switches, two jacks. Revised 2026-09-02.
+
+| Control | Part                          | Acts on                                     |
+| ------- | ----------------------------- | ------------------------------------------- |
+| Volume  | 500k audio taper              | Porter only — **not** the hex pickups       |
+| Tone    | 500k audio + 0.022 µF         | Porter only                                 |
+| CC pot  | 10k **linear**, as a rheostat | GK pin 13 → Teensy ADC → assignable MIDI CC |
+| S1      | Momentary SPST to ground      | GK pin 11 → Teensy digital in               |
+| S2      | Momentary SPST to ground      | GK pin 12 → Teensy digital in               |
+
+**The six per-string toggle switches are dropped.** Per-string enable is a
+firmware variable on a box that already has a Teensy, a display and an encoder.
+In hardware it cost six holes and six control runs sharing a cavity with the six
+unbuffered hi-Z hex lines — making the project's top-ranked risk (crosstalk)
+worse to buy a feature that is free in software. Worse electrically: opening a
+hex hot leaves a floating input on a 46× non-inverting stage, which is _noisier_
+switched off than on.
+
+**Nothing is wired into the hex path.** No pot, no switch, no jack contact. Onset
+detection uses absolute RMS thresholds, so any attenuator there means a bumped
+knob silently stops the MIDI.
+
+Rolling the volume to zero silences the guitar while MIDI keeps playing at full
+level — correct, and useful for silent practice.
 
 ## Routing
 
@@ -121,16 +144,29 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 
 ## Output
 
-- **One cable out: 13-pin DIN (Roland GK standard)** → stomp box (Teensy +
-  op-amps). Hex signals on pins 1–6, ground on 7, **magnetic pickup on pin 8**
-  — the GK standard has a dedicated pin for exactly that, so the Porter rides
-  the same cable instead of needing its own.
-- **Analog:** Porter (neck) → pin 8 → 1/4" jack **on the stomp box** →
-  amp/pedalboard
-- Guitar itself has no active electronics — just pickups, switches, and passive
-  wiring. Pins 9/10 (±7V in the GK standard) are left unconnected.
-- Both outputs work simultaneously and independently
-- Full pin table and rationale: `plan.md` → "13-Pin Interface"
+**Two jacks.** Decided 2026-09-02.
+
+- **13-pin DIN (Roland GK standard)** → stomp box. Hex on pins 1–6, ground on 7,
+  magnetic pickup on pin 8, guitar controls on 11/12/13.
+- **1/4" jack on the guitar** — a **closed-circuit (switched)** mono jack. Its
+  normally-closed contact feeds pin 8, so inserting a plug disconnects pin 8 and
+  the magnetic pickup drives the short cable instead of the multicore.
+
+The two magnetic paths are mutually exclusive by construction, which is the
+point: wiring them in parallel would halve the load impedance, lose treble, and
+create a ground loop the moment they landed in different gear.
+
+| Plugged in       | Magnetic goes to           | MIDI |
+| ---------------- | -------------------------- | ---- |
+| 13-pin only      | Stomp box 1/4" out         | ✓    |
+| Both             | Guitar 1/4" (pin 8 opens)  | ✓    |
+| Guitar 1/4" only | Guitar 1/4" — plain guitar | —    |
+
+- Guitar has **no active electronics and no supply rail** — pickups, pots,
+  switches, passive wiring. Pins 9/10 (±7 V in the GK standard) stay unconnected;
+  the control pins work as closures to ground with all pull-ups in the stomp box.
+- Full pin table and rationale: `plan.md` → "13-Pin Interface";
+  cavity wiring: [`guitar_wiring.md`](guitar_wiring.md)
 
 ## Parts Needed
 
@@ -143,6 +179,13 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 | Hammond 1590DD enclosure                                | Stomp box. ~188 × 120 mm — clears the 82 × 156 mm board. 1590BB / 1590XX are too small                                                          | [ ]      |
 | Hipshot Hardtail bridge                                 | Individual saddles, string-through or top-load. **Measure string spacing before routing the hex-pickup bracket** — it sets hex-pickup alignment | [ ]      |
 | Tuners                                                  | 6 inline or 3+3, match headstock                                                                                                                | [ ]      |
+| 1/4" jack — **closed-circuit (switched)** mono          | Guitar-mounted. Its NC contact must break pin 8 on insertion. **Verify the part number against its datasheet**                                  | [ ]      |
+| Pots — 500k audio × 2                                   | Porter volume and tone                                                                                                                          | [ ]      |
+| Pot — 10k **linear** × 1                                | CC control, wired as a rheostat to GK pin 13. Linear, not audio — the stomp-box divider already curves the response                             | [ ]      |
+| Tone cap — 0.022 µF                                     | Standard humbucker value                                                                                                                        | [ ]      |
+| Momentary SPST switches × 2                             | S1 / S2 → GK pins 11 / 12                                                                                                                       | [ ]      |
+| Knobs × 3                                               | Match pot shaft type                                                                                                                            | [ ]      |
+| Cavity shielding — copper tape or conductive paint      | Bond to the star ground at **one point only**. Twice makes the shield a loop                                                                    | [ ]      |
 | Nut (1-11/16")                                          | Match neck width                                                                                                                                | [ ]      |
 | Fret wire — 6105 (narrow-tall), nickel-silver           | Match 13" board radius. Nickel-silver = DIY-friendly to fret/level                                                                              | [ ]      |
 | String ferrules or mounting hardware                    | Match bridge choice                                                                                                                             | [ ]      |

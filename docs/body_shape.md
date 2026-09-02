@@ -68,9 +68,15 @@ the headstock → real neck-dive risk.
 
 ### 3. Control real estate
 
-- Lots to place: **6 toggle switches, 3 knobs, 13-pin DIN jack**, plus the rear
-  cavity. The 13-pin GK socket is physically larger than a 1/4" jack — check
-  its panel cutout and depth against the cavity before committing the outline.
+- To place: **3 knobs, 2 momentary switches, a 13-pin DIN jack and a 1/4" jack**,
+  plus the rear cavity. Revised 2026-09-02 — the six per-string toggles are gone
+  and a second jack arrived; net, the panel got easier. See
+  [`guitar_wiring.md`](guitar_wiring.md).
+- The 13-pin GK socket is physically larger than a 1/4" jack — check its panel
+  cutout and depth against the cavity before committing the outline.
+- The 1/4" is a **closed-circuit (switched)** jack, so it is slightly deeper than
+  a plain mono jack and has an extra lug. Site it where a cable hanging out of it
+  won't fight the strap or the GK cable.
 - A larger lower bout (which the Iceman direction gives) helps here — just make
   sure the swept lower horn doesn't eat into where the controls and rear cavity
   need to live. Mock up the control layout on the outline before cutting.

@@ -21,13 +21,13 @@ see `../plan.md` → "Phase 3" for why the electronics left the guitar.
 
 ## I/O
 
-| Connector            | Direction | Notes                                                                       |
-| -------------------- | --------- | --------------------------------------------------------------------------- |
-| 13-pin DIN           | in        | From the guitar. Roland GK standard — see `../plan.md` → "13-Pin Interface" |
-| MIDI OUT (5-pin DIN) | out       | To a hardware synth. **The stage path**                                     |
-| 1/4" jack            | out       | Magnetic pickup passthrough → amp. Passive, never touches the preamp        |
-| USB-C                | data      | To the laptop. **Desk-only.** Data only once the VUSB trace is cut          |
-| 9V DC                | power     | 2.1 mm, center-negative, pedalboard standard                                |
+| Connector            | Direction | Notes                                                                              |
+| -------------------- | --------- | ---------------------------------------------------------------------------------- |
+| 13-pin DIN           | in        | From the guitar. Roland GK standard — see `../plan.md` → "13-Pin Interface"        |
+| MIDI OUT (5-pin DIN) | out       | To a hardware synth. **The stage path**                                            |
+| 1/4" jack            | out       | Magnetic passthrough → amp. Passive. **Dead when the guitar's own 1/4" is in use** |
+| USB-C                | data      | To the laptop. **Desk-only.** Data only once the VUSB trace is cut                 |
+| 9V DC                | power     | 2.1 mm, center-negative, pedalboard standard                                       |
 
 Panel convention follows pedal practice — signal right to left as you face it:
 
@@ -117,9 +117,18 @@ interfaces have enough isolation that it never appears. Test before solving it.
   unrepresented, so today they would be perfboard and flying leads. Not scoped.
 - **The cable test** (`../plan.md` → "13-Pin Interface") still gates ordering
   any board. Do not fab before running it.
-- **A 1/4" jack on the guitar as well.** Pin 8 is passive, so the magnetic
-  pickup drives the whole 13-pin cable before anything buffers it — that rolls
-  off highs and shifts the resonant peak. A second jack on the guitar costs one
-  hole and lets you bypass the multicore when analog tone matters. Cheaper to
-  drill now than later.
+- **Guitar control-pin protection.** The guitar now drives GK pins 11/12/13 into
+  Teensy pins 21/22/23. That needs a 10k series + 10k pull-up + 100nF + Schottky
+  clamp on each line, or a plugged-in real GK guitar puts +7V on pins with no 5V
+  tolerance. **Required before those pins are wired**, not a refinement — see
+  [`../guitar_wiring.md`](../guitar_wiring.md).
+- **74HC595 for the LED halos.** The pin budget only balances with it. Adds a
+  chip to the Rev B scope. See [`pin_map.md`](pin_map.md).
 - **Digitizing the magnetic pickup** — deferred, see `../plan.md`.
+
+### Closed
+
+- ~~**A 1/4" jack on the guitar as well.**~~ **Decided 2026-09-02: yes.** It is a
+  closed-circuit jack whose NC contact feeds pin 8, so plugging in disconnects
+  the multicore path rather than paralleling it. See
+  [`../guitar_wiring.md`](../guitar_wiring.md).

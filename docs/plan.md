@@ -148,28 +148,56 @@ nothing, and it makes cables a thing you buy rather than build.
 | 5   | String 2 (B)      | Hex channel → ADC                          |
 | 6   | String 1 (high E) | Hex channel → ADC                          |
 | 7   | Ground            | Common ground                              |
-| 8   | Normal pickup     | **Porter magnetic → 1/4" jack.** Free fit. |
+| 8   | Normal pickup     | **Porter magnetic.** Switched — see below. |
 | 9   | +7V               | _Unused._ Guitar end is passive.           |
 | 10  | −7V               | _Unused._ Guitar end is passive.           |
-| 11  | S1 (switch)       | _Unused._ Reserved for future control.     |
-| 12  | S2 (switch)       | _Unused._ Reserved for future control.     |
-| 13  | Volume            | _Unused._ Reserved for future control.     |
+| 11  | S1 (switch)       | **Momentary → Teensy pin 21.**             |
+| 12  | S2 (switch)       | **Momentary → Teensy pin 22.**             |
+| 13  | Volume            | **10k rheostat → Teensy pin 23 / A9.**     |
+
+**Pins 11/12/13 are now in use** (2026-09-02). They carry guitar-mounted
+controls as **closures to ground only** — every pull-up lives in the stomp box,
+so no supply crosses the cable and the guitar stays passive. Values, the divider
+maths and the required input protection are in
+[`guitar_wiring.md`](guitar_wiring.md); the Teensy end is in
+[`stompbox/pin_map.md`](stompbox/pin_map.md).
+
+**Pin 8 is switched, not hardwired.** The guitar now carries its own 1/4" jack
+as well, and it is a closed-circuit type whose NC contact feeds pin 8 — insert a
+plug and pin 8 opens. The two magnetic paths are mutually exclusive by
+construction, which avoids halving the load impedance and avoids a ground loop
+between the two jacks.
 
 **String-to-ADC direction is not yet decided.** `config.h` maps string index 0
 to `A0`, but nothing states whether index 0 is low E or high E. Pick one and
 write it down before the cable is wired — it is a one-line firmware change
 now and a rewiring job later.
 
-### Why conforming is safe
+### Mis-plug behaviour — one direction now needs protection
 
-Both mis-plug directions are harmless, which is the argument for the standard
-over a custom pinout:
+Conforming to the standard is still right, but **claiming both directions are
+harmless is no longer true for free.** It became conditional the moment pins
+11/12/13 were connected to Teensy pins (2026-09-02).
 
-- **This guitar into real GK gear** — the synth puts ±7V on pins 9/10, which
-  connect to nothing here. The hex pickups would be read at the wrong levels
-  and impedance, so it would behave oddly, but nothing is damaged.
-- **A real GK guitar into this enclosure** — it expects ±7V to run its
-  internal preamp, does not get it, and stays silent. Also harmless.
+- **This guitar into real GK gear — still harmless.** The synth puts ±7V on pins
+  9/10, which connect to nothing here. Pin 13 presents a 0–10k resistance to
+  ground and 11/12 present switch closures, all of which a GK input tolerates.
+  The hex pickups get read at the wrong levels and impedance, so it behaves
+  oddly, but nothing is damaged.
+- **A real GK guitar into this enclosure — now a hazard.** Its controls are
+  powered by its own ±7V, so pins 11/12/13 can arrive carrying up to **+7V, into
+  Teensy pins that are not 5V tolerant.** Previously those pins went nowhere and
+  this could not happen.
+
+**The fix is required, not optional:** 10k series resistor, 10k pull-up on the
+connector side, 100nF to ground, and a Schottky clamp (BAT54S) to +3.3V and GND
+on each of the three lines. Checked at +7V that is 0.34 mA into the clamp and
+0.37 mA back through the pull-up into a rail the Teensy core already loads at
+~100 mA — nothing strains. Do **not** rely on the Teensy's internal protection
+diodes. Full circuit in [`guitar_wiring.md`](guitar_wiring.md).
+
+Until that clamp exists on the stomp box, treat a borrowed GK guitar as
+something that will cost you three ADC pins.
 
 ### Open item: buffering
 

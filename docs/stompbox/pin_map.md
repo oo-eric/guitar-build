@@ -34,7 +34,7 @@ two most dangerous places to put anything that toggles.
 
 | Pin   | Use                       | Notes                                              |
 | ----- | ------------------------- | -------------------------------------------------- |
-| 0     | LED halo — PANIC          | Left column, away from analog                      |
+| 0     | **74HC595 latch (RCLK)**  | Drives all four LED halos. Data/clock share SPI0   |
 | **1** | **RESERVED — do not use** | Collision: Serial1 TX _and_ SPI1 MISO. See below   |
 | 2     | Footswitch — PANIC        | Momentary, Bounce2                                 |
 | 3     | Footswitch — MODE         | Momentary, Bounce2                                 |
@@ -50,34 +50,51 @@ two most dangerous places to put anything that toggles.
 | 13    | TFT SCK                   | SPI0. **Known noise risk** — see below             |
 | 14–19 | **A0–A5, preamp inputs**  | Six hex channels from the board's J7 header        |
 | 20    | **keep clear**            | Flanks A5. Nothing that toggles                    |
-| 21    | LED halo — MODE           | Right column, but LEDs only switch on state change |
-| 22    | LED halo — PATCH −        | ditto                                              |
-| 23    | LED halo — PATCH +        | ditto                                              |
+| 21    | **Guitar S1** (GK pin 11) | Digital in. RC-slugged, see below                  |
+| 22    | **Guitar S2** (GK pin 12) | Digital in. RC-slugged, see below                  |
+| 23    | **Guitar CC pot** / A9    | Analog in (GK pin 13). Furthest pin from A5        |
 | 3.3V  | → preamp board            | Teensy's regulator, 250 mA available, ~0.6 mA used |
 | Vin   | ← 5V from power section   | **Never 9V.** See [`power.md`](power.md)           |
 
-## The budget is now full
+## The budget, and the 74HC595
 
-Every perimeter pin is allocated except pin 1 (reserved) and pin 20 (kept
-clear). There is **no spare**.
+**Relief valve #1 has been spent** (2026-09-02). The guitar gained three
+controls on GK pins 11/12/13 — see [`../guitar_wiring.md`](../guitar_wiring.md)
+— and the perimeter was already full, so the four LED halos moved to a
+**74HC595** on the existing SPI0 bus.
 
-Two things that had to give to make it fit:
+|            | Before        | After                        |
+| ---------- | ------------- | ---------------------------- |
+| LED halos  | pins 0, 21–23 | 74HC595, latch on pin 0      |
+| Pins freed | —             | 21, 22, 23                   |
+| Net change | —             | **+3 pins**, all ADC-capable |
 
-- **No separate MIDI-activity LED.** The four halos cover switch state; MIDI
-  activity goes on the display instead. Reinstating it costs a pin nobody has.
-- **Three halos sit on the right column** (21–23). LEDs only change on a state
-  change — not continuously like SPI — so the coupling risk is much lower than
-  pin 13's. Pin 20 stays empty as the buffer next to A5.
+The 595's data and clock ride MOSI (11) and SCK (13), already there for the TFT.
+Only the latch needs a pin of its own. Pin 0 is Serial1 RX and unused — MIDI OUT
+is Serial2 TX on pin 8.
 
-**Relief valves, if something else needs a pin:**
+Two things this buys beyond the three pins:
 
-1. **Drive the halos from a 74HC595** on the existing SPI bus. One latch pin
-   replaces four LED pins, freeing three, and the shift register can drive more
-   LEDs later at no extra pin cost.
-2. **Bottom-side pads (24–33)** are unused. Fine for low-speed signals, awkward
-   to reach once the Teensy is socketed.
+- **Four spare 595 outputs.** The MIDI-activity LED that was cut for lack of a
+  pin can come back for free, and so can three more after it.
+- SCK only toggles when an LED state changes, which is a stomp, not a loop.
 
-Take option 1 before option 2.
+Every perimeter pin is again allocated except pin 1 (reserved) and pin 20 (kept
+clear). **Relief valve #2** — bottom-side pads 24–33 — is still untouched, and
+is still awkward: they are SMT pads under a socketed chip.
+
+### Why switches are allowed on the analog column
+
+Pins 21–23 sit on the right-hand column, which the rule above reserves for
+analog. Two of them now carry switch closures. That is deliberate and safe here
+for one specific reason: **every one of those three lines passes through a
+10k/100nF RC at the Teensy pin** — required anyway as mis-plug protection, see
+`../guitar_wiring.md`. A 1 ms time constant means there is physically no fast
+edge to couple, which is a stronger guarantee than the "LEDs only change on
+state change" argument that previously justified putting halos there.
+
+The CC pot takes **pin 23 / A9**, the furthest pin from the A0–A5 block. Pin 20
+stays empty as the buffer next to A5.
 
 ## Collision: pin 1
 
