@@ -50,17 +50,17 @@ two most dangerous places to put anything that toggles.
 | 13    | TFT SCK                   | SPI0. **Known noise risk** — see below             |
 | 14–19 | **A0–A5, preamp inputs**  | Six hex channels from the board's J7 header        |
 | 20    | **keep clear**            | Flanks A5. Nothing that toggles                    |
-| 21    | **Guitar S1** (GK pin 11) | Digital in. RC-slugged, see below                  |
-| 22    | **Guitar S2** (GK pin 12) | Digital in. RC-slugged, see below                  |
-| 23    | **Guitar CC pot** / A9    | Analog in (GK pin 13). Furthest pin from A5        |
+| 21    | **Guitar mode — MIDI on** | GK pin 10 (S1). Low = send MIDI. RC-slugged        |
+| 22    | _spare_ — GK pin 11 (S2)  | Not driven by this guitar. Same RC input circuit   |
+| 23    | _free_ / A9               | Was the CC pot, dropped 2026-09-18. Analog-capable |
 | 3.3V  | → preamp board            | Teensy's regulator, 250 mA available, ~0.6 mA used |
 | Vin   | ← 5V from power section   | **Never 9V.** See [`power.md`](power.md)           |
 
 ## The budget, and the 74HC595
 
-**Relief valve #1 has been spent** (2026-09-02). The guitar gained three
-controls on GK pins 11/12/13 — see [`../guitar_wiring.md`](../guitar_wiring.md)
-— and the perimeter was already full, so the four LED halos moved to a
+**Relief valve #1 has been spent** (2026-09-02). The guitar gained controls on
+the GK control pins — now a Guitar / Mix / MIDI mode switch on pin 10, see
+[`../guitar_wiring.md`](../guitar_wiring.md) — and the perimeter was already full, so the four LED halos moved to a
 **74HC595** on the existing SPI0 bus.
 
 |            | Before        | After                        |
@@ -79,22 +79,22 @@ Two things this buys beyond the three pins:
   pin can come back for free, and so can three more after it.
 - SCK only toggles when an LED state changes, which is a stomp, not a loop.
 
-Every perimeter pin is again allocated except pin 1 (reserved) and pin 20 (kept
-clear). **Relief valve #2** — bottom-side pads 24–33 — is still untouched, and
+Every perimeter pin is again allocated except pin 1 (reserved), pin 20 (kept
+clear) and pin 23, freed when the guitar's CC pot was dropped (2026-09-18). **Relief valve #2** — bottom-side pads 24–33 — is still untouched, and
 is still awkward: they are SMT pads under a socketed chip.
 
 ### Why switches are allowed on the analog column
 
 Pins 21–23 sit on the right-hand column, which the rule above reserves for
-analog. Two of them now carry switch closures. That is deliberate and safe here
-for one specific reason: **every one of those three lines passes through a
-10k/100nF RC at the Teensy pin** — required anyway as mis-plug protection, see
-`../guitar_wiring.md`. A 1 ms time constant means there is physically no fast
+analog. Pin 21 carries the guitar mode switch's closure, and 22 is wired the
+same way for S2. That is deliberate and safe here for one specific reason:
+**both lines pass through a 10k/100nF RC
+at the Teensy pin** — see `../guitar_wiring.md`. A 1 ms time constant means there is physically no fast
 edge to couple, which is a stronger guarantee than the "LEDs only change on
 state change" argument that previously justified putting halos there.
 
-The CC pot takes **pin 23 / A9**, the furthest pin from the A0–A5 block. Pin 20
-stays empty as the buffer next to A5.
+Pin 23 / A9 is free — the furthest pin from the A0–A5 block, so it is the one
+to give any future analog input. Pin 20 stays empty as the buffer next to A5.
 
 ## Collision: pin 1
 

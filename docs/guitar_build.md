@@ -100,15 +100,17 @@ reduce magnetic bleed. Short of that, it's complexity without payoff.
 **Full wiring, values and rationale: [`guitar_wiring.md`](guitar_wiring.md).**
 Summary only here.
 
-Three knobs, two switches, two jacks. Revised 2026-09-02.
+Two knobs, one 3-way toggle, two jacks. Revised 2026-09-18 to the parts in hand
+(two A500K pots, a Les Paul-style toggle, a 2-conductor Porter).
 
-| Control | Part                          | Acts on                                     |
-| ------- | ----------------------------- | ------------------------------------------- |
-| Volume  | 500k audio taper              | Porter only — **not** the hex pickups       |
-| Tone    | 500k audio + 0.022 µF         | Porter only                                 |
-| CC pot  | 10k **linear**, as a rheostat | GK pin 13 → Teensy ADC → assignable MIDI CC |
-| S1      | Momentary SPST to ground      | GK pin 11 → Teensy digital in               |
-| S2      | Momentary SPST to ground      | GK pin 12 → Teensy digital in               |
+| Control | Part                                  | Acts on                                                                         |
+| ------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| Volume  | A500K (audio taper)                   | Porter only — **not** the hex pickups                                           |
+| Tone    | A500K + 0.033 µF (33 nF)              | Porter only                                                                     |
+| Mode    | Les Paul 3-way, two independent pairs | **Guitar / Mix / MIDI.** Pair A switches the Porter; pair B → GK 10 → Teensy 21 |
+
+The mode switch replaces the planned CC pot and two momentaries. Its lever
+position is the MIDI on/off indicator the guitar otherwise couldn't have.
 
 **The six per-string toggle switches are dropped.** Per-string enable is a
 firmware variable on a box that already has a Teensy, a display and an encoder.
@@ -147,9 +149,10 @@ level — correct, and useful for silent practice.
 **Two jacks.** Decided 2026-09-02.
 
 - **13-pin DIN (Roland GK standard)** → stomp box. Hex on pins 1–6, ground on 7,
-  magnetic pickup on pin 8, guitar controls on 11/12/13.
+  magnetic pickup on pin 7, the mode switch on S1 (pin 10), ground on the
+  shell. **Pin 1 is high E.**
 - **1/4" jack on the guitar** — a **closed-circuit (switched)** mono jack. Its
-  normally-closed contact feeds pin 8, so inserting a plug disconnects pin 8 and
+  normally-closed contact feeds pin 7, so inserting a plug disconnects pin 7 and
   the magnetic pickup drives the short cable instead of the multicore.
 
 The two magnetic paths are mutually exclusive by construction, which is the
@@ -159,11 +162,11 @@ create a ground loop the moment they landed in different gear.
 | Plugged in       | Magnetic goes to           | MIDI |
 | ---------------- | -------------------------- | ---- |
 | 13-pin only      | Stomp box 1/4" out         | ✓    |
-| Both             | Guitar 1/4" (pin 8 opens)  | ✓    |
+| Both             | Guitar 1/4" (pin 7 opens)  | ✓    |
 | Guitar 1/4" only | Guitar 1/4" — plain guitar | —    |
 
 - Guitar has **no active electronics and no supply rail** — pickups, pots,
-  switches, passive wiring. Pins 9/10 (±7 V in the GK standard) stay unconnected;
+  switches, passive wiring. Pins 12/13 (±7 V in the GK standard) stay unconnected;
   the control pins work as closures to ground with all pull-ups in the stomp box.
 - Full pin table and rationale: `plan.md` → "13-Pin Interface";
   cavity wiring: [`guitar_wiring.md`](guitar_wiring.md)
@@ -179,12 +182,11 @@ create a ground loop the moment they landed in different gear.
 | Hammond 1590DD enclosure                                | Stomp box. ~188 × 120 mm — clears the 82 × 156 mm board. 1590BB / 1590XX are too small                                                          | [ ]      |
 | Hipshot Hardtail bridge                                 | Individual saddles, string-through or top-load. **Measure string spacing before routing the hex-pickup bracket** — it sets hex-pickup alignment | [ ]      |
 | Tuners                                                  | 6 inline or 3+3, match headstock                                                                                                                | [ ]      |
-| 1/4" jack — **closed-circuit (switched)** mono          | Guitar-mounted. Its NC contact must break pin 8 on insertion. **Verify the part number against its datasheet**                                  | [ ]      |
-| Pots — 500k audio × 2                                   | Porter volume and tone                                                                                                                          | [ ]      |
-| Pot — 10k **linear** × 1                                | CC control, wired as a rheostat to GK pin 13. Linear, not audio — the stomp-box divider already curves the response                             | [ ]      |
-| Tone cap — 0.022 µF                                     | Standard humbucker value                                                                                                                        | [ ]      |
-| Momentary SPST switches × 2                             | S1 / S2 → GK pins 11 / 12                                                                                                                       | [ ]      |
-| Knobs × 3                                               | Match pot shaft type                                                                                                                            | [ ]      |
+| 1/4" jack — **closed-circuit (switched)** mono          | Guitar-mounted. Its NC contact must break pin 7 on insertion. **Verify the part number against its datasheet**                                  | [ ]      |
+| Pots — 500k audio × 2                                   | Porter volume and tone. **In hand: A500K ×2**                                                                                                   | [x]      |
+| Tone cap — 0.033 µF (33 nF)                             | **In hand**, marked `.033`, non-polarized. A touch darker than the 22 nF standard when rolled back                                              | [x]      |
+| 3-way toggle, Les Paul style                            | Mode switch. Inner lugs **not** jumpered — verified independent. **In hand**                                                                    | [x]      |
+| Knobs × 2                                               | Match pot shaft type                                                                                                                            | [ ]      |
 | Cavity shielding — copper tape or conductive paint      | Bond to the star ground at **one point only**. Twice makes the shield a loop                                                                    | [ ]      |
 | Nut (1-11/16")                                          | Match neck width                                                                                                                                | [ ]      |
 | Fret wire — 6105 (narrow-tall), nickel-silver           | Match 13" board radius. Nickel-silver = DIY-friendly to fret/level                                                                              | [ ]      |

@@ -9,6 +9,7 @@ A DIY guitar with per-string pickups and a Teensy 4.0 for real-time pitch-to-MID
   - `buffer_circuit.md` — **circuit of record.** MCP6002 @ 3.3V preamp schematic, values, BOM, bring-up. Phase-1 TL072 build is a superseded appendix at the bottom.
   - `guitar_build.md` — physical guitar build specs and decisions
   - `guitar_wiring.md` — **guitar cavity wiring of record.** Signal domains, the two-jack switching, knob/switch values, grounding. Read before wiring the body
+  - `guitar_wiring_diagram.md` — **bench sheet**: diagram, point-to-point wire list, pre-solder meter checks, post-solder continuity tests
   - `pickup_selection.md` — standard magnetic pickup selection (Porter Pickups, Filtertron-sized)
   - `plan.md` — phased build plan, parts list, signal chain, technical notes, and the **13-pin interface** pin table
   - `stompbox/` — the enclosure that holds everything except the pickups
@@ -79,17 +80,17 @@ Expect 5 pre-existing silkscreen-overlap warnings (R10, R13, R16, R20/C13) — c
 
 **The electronics do not live in the guitar.** The preamp board is 82 × 156 mm and never fit a control cavity. Decided 2026-08-09:
 
-- **Guitar** — pickups, a 13-pin socket, **its own 1/4" jack**, three knobs and two switches. Still entirely passive: no power, no active parts, and no supply rail crosses the cable in either direction. See `docs/guitar_wiring.md`.
+- **Guitar** — pickups, a 13-pin socket, **its own 1/4" jack**, two knobs (A500K volume/tone on the Porter) and one Les Paul-style 3-way used as a **Guitar / Mix / MIDI mode switch** (one contact pair switches the Porter audio, the other grounds GK pin 10 when MIDI should play). Still entirely passive: no power, no active parts, and no supply rail crosses the cable in either direction. See `docs/guitar_wiring.md`.
 - **Stomp box** — preamp board + Teensy + 1/4" jack + USB-C. Target enclosure: Hammond 1590DD.
-- **Link** — a **standard Roland GK 13-pin cable and pin assignment**, not a custom pinout. Conforming costs nothing and makes cables purchasable. Hex on pins 1–6, ground on 7, magnetic pickup on 8 (switched by the guitar's own 1/4" jack), ±7V on 9/10 (unused), **S1/S2/Vol on 11–13 now carry guitar controls** as closures to ground — every pull-up stays stomp-box side.
-- Mis-plugging: **guitar into GK gear is harmless; a real GK guitar into this box is not**, now that pins 11/12/13 are connected. See `plan.md` → "13-Pin Interface".
+- **Link** — a **standard Roland GK 13-pin cable and pin assignment**, not a custom pinout. Conforming costs nothing and makes cables purchasable. Hex on pins 1–6 (**pin 1 = string 1 = high E**), magnetic pickup on 7 (switched by the guitar's own 1/4" jack), synth volume on 8 and mode CV on 9 (both unconnected), **S1 on pin 10 carries the mode switch's MIDI on/off** as a closure to ground (S2 on 11 unconnected guitar-side) — every pull-up stays stomp-box side — ±7V on 12/13 (unused), ground on the shell. **Verified 2026-09-18 against two published GK pinouts; the earlier table in `plan.md` was wrong on strings and on every pin from 7 to 13.**
+- Mis-plugging: **harmless both ways.** This box never supplies ±7V, so a real GK guitar plugged into it is unpowered. See `plan.md` → "13-Pin Interface".
 
-Two items still open there: **(1)** whether string index 0 is low E or high E (`config.h` maps index 0 → A0, but nothing says which end of the neck that is — decide before wiring a cable); **(2)** whether the passive guitar end survives sending raw ~0.1Vpp down a long cable into 1MΩ. Risk order is crosstalk between strings (worst — it attacks per-string pitch detection directly), then hum, then HF loss.
+One item still open there: whether the passive guitar end survives sending raw ~0.1Vpp down a long cable into 1MΩ. Risk order is crosstalk between strings (worst — it attacks per-string pitch detection directly), then hum, then HF loss.
 
 Two rules added 2026-09-02 with the guitar's knobs and switches:
 
 - **No pot or switch may ever sit in the hex path.** Onset detection uses absolute RMS thresholds, so an attenuator there stops the MIDI silently, and opening a hex hot leaves a floating input on a 46× stage — noisier off than on.
-- **Connecting GK pins 11/12/13 to Teensy pins costs the old "mis-plugging is harmless both ways" guarantee.** A real GK guitar drives those pins from its own ±7V, into Teensy pins with no 5V tolerance. Each line needs 10k series + 10k pull-up + 100nF + a Schottky clamp before it is wired.
+- **GK pins 10/11 → Teensy 21/22 (22 spare) each get 10k series + 10k pull-up + 100nF + a BAT54S clamp.** The RC is required: it keeps switch edges off the analog column. The clamp is cheap insurance, not a fix for a known failure. Teensy pin 23/A9 is free since the CC pot was dropped (2026-09-18).
 
 **Do not order boards before running the cable test** — if buffers must move guitar-side, this board may change.
 

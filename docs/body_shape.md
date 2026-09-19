@@ -68,9 +68,11 @@ the headstock → real neck-dive risk.
 
 ### 3. Control real estate
 
-- To place: **3 knobs, 2 momentary switches, a 13-pin DIN jack and a 1/4" jack**,
-  plus the rear cavity. Revised 2026-09-02 — the six per-string toggles are gone
-  and a second jack arrived; net, the panel got easier. See
+- To place: **2 knobs, one Les Paul-style 3-way (Guitar / Mix / MIDI mode switch), a 13-pin DIN jack and a
+  1/4" jack**, plus the rear cavity. Revised 2026-09-18 to the parts in hand — the
+  six per-string toggles went first (2026-09-02), then the CC pot and the two
+  momentaries folded into the one toggle. The toggle wants the upper bout, out
+  of the strumming arc. See
   [`guitar_wiring.md`](guitar_wiring.md).
 - The 13-pin GK socket is physically larger than a 1/4" jack — check its panel
   cutout and depth against the cavity before committing the outline.

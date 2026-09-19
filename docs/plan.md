@@ -134,74 +134,70 @@ Guitar-to-enclosure link uses the **standard 13-pin Roland GK connector and
 pin assignment**. Own pinout was considered and rejected: conforming costs
 nothing, and it makes cables a thing you buy rather than build.
 
-> **Verify the pin numbers against a published GK reference before ordering a
-> PCB or drilling a panel.** The assignment below is the widely-used de-facto
-> standard, not an official Roland-published spec, and a wrong hole in an
-> enclosure is annoying but a wrong trace on a board is a reorder.
+> **Pinout verified 2026-09-18** against two independent pin-by-pin listings —
+> the flamisch.at "Connectors and Pinnings for GK-System and Variax" sheet and
+> johnp.net's Roland guitar-synth pinouts — which agree with each other. The
+> table that stood here before had the strings reversed and pins 7–13 wrong;
+> see [`guitar_wiring.md`](guitar_wiring.md#pinout-correction-2026-09-18).
 
-| Pin | GK standard       | This build                                 |
-| --- | ----------------- | ------------------------------------------ |
-| 1   | String 6 (low E)  | Hex channel → ADC                          |
-| 2   | String 5 (A)      | Hex channel → ADC                          |
-| 3   | String 4 (D)      | Hex channel → ADC                          |
-| 4   | String 3 (G)      | Hex channel → ADC                          |
-| 5   | String 2 (B)      | Hex channel → ADC                          |
-| 6   | String 1 (high E) | Hex channel → ADC                          |
-| 7   | Ground            | Common ground                              |
-| 8   | Normal pickup     | **Porter magnetic.** Switched — see below. |
-| 9   | +7V               | _Unused._ Guitar end is passive.           |
-| 10  | −7V               | _Unused._ Guitar end is passive.           |
-| 11  | S1 (switch)       | **Momentary → Teensy pin 21.**             |
-| 12  | S2 (switch)       | **Momentary → Teensy pin 22.**             |
-| 13  | Volume            | **10k rheostat → Teensy pin 23 / A9.**     |
+| Pin   | GK standard                | This build                                        |
+| ----- | -------------------------- | ------------------------------------------------- |
+| 1     | String 1 (high E)          | Hex → preamp J1 → A0 (`config.h` index 0)         |
+| 2     | String 2 (B)               | Hex → J2 → A1                                     |
+| 3     | String 3 (G)               | Hex → J3 → A2                                     |
+| 4     | String 4 (D)               | Hex → J4 → A3                                     |
+| 5     | String 5 (A)               | Hex → J5 → A4                                     |
+| 6     | String 6 (low E)           | Hex → J6 → A5                                     |
+| 7     | Normal guitar pickup       | **Porter magnetic.** Switched — see below.        |
+| 8     | Synth volume (0–5 V DC)    | _Not connected._                                  |
+| 9     | GK mode switch (analog CV) | _Not connected._                                  |
+| 10    | S1 — active low            | **Mode switch: low = send MIDI → Teensy pin 21.** |
+| 11    | S2 — active low            | _Not connected_ guitar-side. Teensy pin 22 spare. |
+| 12    | +7 V                       | _Unused._ Guitar end is passive.                  |
+| 13    | −7 V                       | _Unused._ Guitar end is passive.                  |
+| Shell | Ground                     | Star ground                                       |
 
-**Pins 11/12/13 are now in use** (2026-09-02). They carry guitar-mounted
-controls as **closures to ground only** — every pull-up lives in the stomp box,
-so no supply crosses the cable and the guitar stays passive. Values, the divider
-maths and the required input protection are in
+**Pin 10 carries the guitar's Guitar / Mix / MIDI mode switch** (revised
+2026-09-18 from two momentaries plus a CC pot on the old, wrong pin numbers).
+One contact pair on the Les Paul toggle switches the magnetic audio directly;
+the other grounds pin 10 whenever MIDI should play. It is a **closure to ground
+only**, which is also the GK convention for S1/S2 — every pull-up
+lives in the stomp box, so no supply crosses the cable and the guitar stays
+passive. Switch positions, input circuit and firmware notes are in
 [`guitar_wiring.md`](guitar_wiring.md); the Teensy end is in
 [`stompbox/pin_map.md`](stompbox/pin_map.md).
 
-**Pin 8 is switched, not hardwired.** The guitar now carries its own 1/4" jack
-as well, and it is a closed-circuit type whose NC contact feeds pin 8 — insert a
-plug and pin 8 opens. The two magnetic paths are mutually exclusive by
+**Pin 7 is switched, not hardwired.** The guitar carries its own 1/4" jack as
+well, and it is a closed-circuit type whose NC contact feeds pin 7 — insert a
+plug and pin 7 opens. The two magnetic paths are mutually exclusive by
 construction, which avoids halving the load impedance and avoids a ground loop
 between the two jacks.
 
-**String-to-ADC direction is not yet decided.** `config.h` maps string index 0
-to `A0`, but nothing states whether index 0 is low E or high E. Pick one and
-write it down before the cable is wired — it is a one-line firmware change
-now and a rewiring job later.
+**String-to-ADC direction is decided by the standard:** pin 1 is string 1, high
+E, so `config.h` index 0 is high E. The firmware has no per-string frequency
+limits, so nothing else changes.
 
-### Mis-plug behaviour — one direction now needs protection
+### Mis-plug behaviour — harmless both ways
 
-Conforming to the standard is still right, but **claiming both directions are
-harmless is no longer true for free.** It became conditional the moment pins
-11/12/13 were connected to Teensy pins (2026-09-02).
+- **This guitar into real GK gear.** The synth's ±7 V on pins 12/13 lands on
+  nothing. Pin 7 gets the Porter, which is what a GK synth expects there. The
+  hex pickups arrive raw where the synth expects buffered low-Z, so it tracks
+  poorly, and in Mix / MIDI only the mode switch holds S1 "pressed" — odd, not damaging. What a
+  given synth does with pin 8 left open is untested.
+- **A real GK guitar into this enclosure.** GK pickups and Roland-Ready guitars
+  are powered from ±7 V on pins 12/13, which this box never supplies, so they
+  arrive unpowered and inert.
 
-- **This guitar into real GK gear — still harmless.** The synth puts ±7V on pins
-  9/10, which connect to nothing here. Pin 13 presents a 0–10k resistance to
-  ground and 11/12 present switch closures, all of which a GK input tolerates.
-  The hex pickups get read at the wrong levels and impedance, so it behaves
-  oddly, but nothing is damaged.
-- **A real GK guitar into this enclosure — now a hazard.** Its controls are
-  powered by its own ±7V, so pins 11/12/13 can arrive carrying up to **+7V, into
-  Teensy pins that are not 5V tolerant.** Previously those pins went nowhere and
-  this could not happen.
-
-**The fix is required, not optional:** 10k series resistor, 10k pull-up on the
-connector side, 100nF to ground, and a Schottky clamp (BAT54S) to +3.3V and GND
-on each of the three lines. Checked at +7V that is 0.34 mA into the clamp and
-0.37 mA back through the pull-up into a rail the Teensy core already loads at
-~100 mA — nothing strains. Do **not** rely on the Teensy's internal protection
-diodes. Full circuit in [`guitar_wiring.md`](guitar_wiring.md).
-
-Until that clamp exists on the stomp box, treat a borrowed GK guitar as
-something that will cost you three ADC pins.
+The earlier version of this section called the second case a hazard (+7 V into
+Teensy pins). That came from the wrong pinout. The stomp-box input circuit —
+10k series, 10k pull-up on the connector side, 100 nF, BAT54S clamp to +3.3 V
+and GND — stays anyway: the RC is what keeps switch edges off the analog
+column, and the clamp is cheap cover for ESD and self-powered oddities. Full
+circuit in [`guitar_wiring.md`](guitar_wiring.md).
 
 ### Open item: buffering
 
-Pins 9/10 stay unused **only while the guitar end is passive**, which means the
+Pins 12/13 stay unused **only while the guitar end is passive**, which means the
 raw ~0.1 Vpp pickup signal travels the full cable into a 1 MΩ input. The risks,
 worst first: **crosstalk** between six unbuffered high-impedance lines sharing
 one jacket (this attacks per-string pitch detection directly), **hum**, and
@@ -214,7 +210,7 @@ one needs to is an empirical question, and there is a cheap test:
 > Compare idle RMS against the current ~0.014 and check that pitch tracking
 > still holds. If idle barely moves, the passive guitar end stands.
 
-If it fails, guitar-side buffers become necessary and pins 9/10 exist for
+If it fails, guitar-side buffers become necessary and pins 12/13 exist for
 exactly that — though note the Teensy cannot produce ±7V, so a conforming
 supply would need a charge pump or small dual supply in the enclosure.
 
@@ -273,7 +269,7 @@ The pickup signal splits at the buffer circuit. One path feeds the Teensy ADC fo
 
 ### The magnetic pickup is a passive pass-through
 
-**Pin 8 never touches the preamp board.** It enters the enclosure and goes
+**Pin 7 (the magnetic pickup) never touches the preamp board.** It enters the enclosure and goes
 straight to the 1/4" jack. Two reasons:
 
 1. The board has exactly six inputs (J1–J6 → A0–A5). There is no seventh.

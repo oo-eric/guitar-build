@@ -292,7 +292,7 @@ Measure with no string vibrating unless stated.
 | **Flat-topped waveform**                     | Clipping. Increase `Rg`.                                                                                                                                                                  |
 | **Weak, dull, or thin output**               | Something is loading the pickup. `Rbias` should be 1M and the pickup should see nothing else.                                                                                             |
 | **Strings audible in each other's channels** | VBIAS crosstalk. Check the 100µF; consider buffering the rail.                                                                                                                            |
-| **Hash/noise correlated with the display**   | Known issue — ILI9341 SPI SCLK couples into the ADC. See `CLAUDE.md`; display is parked.                                                                                                  |
+| **Hash/noise correlated with the display**   | Known issue — ILI9341 SPI SCLK couples into the ADC. See `AGENTS.md`; display is parked.                                                                                                  |
 
 ---
 

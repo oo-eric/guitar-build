@@ -11,8 +11,15 @@ Four, in the order they earn their place:
 | **PATCH −** | Program Change down                  | Change synth sounds without walking back to the rack                                                                                                                                                       |
 | **PATCH +** | Program Change up                    | ditto                                                                                                                                                                                                      |
 
-Worth adding while the panel is a drawing: **MUTE** — stop sending notes
-entirely, for tuning and between-song silence.
+**MUTE is resolved, and it is not a footswitch.** It went to the guitar — first
+as a momentary S1 (2026-09-02), now as the "Guitar only" position of a
+Guitar / Mix / MIDI mode switch on GK pin 10 (2026-09-18) — stopping notes for tuning or between-song silence is something
+you do while holding the instrument, not something you kick. See
+[`../guitar_wiring.md`](../guitar_wiring.md). The floor keeps PANIC, which is
+the different job: cleanup after a missed note-off rather than prevention.
+
+Patch stepping lives here only. It was briefly also on a guitar momentary; the
+mode switch that replaced those switches is latched, so it can't step.
 
 **Settled: all four stay.** The encoder was floated as a way to drop to two
 switches and fit a stock 1590DD. The box is custom
@@ -87,6 +94,14 @@ one thing in zero.
 
 - **MODE** — which MIDI mode is active
 - **MIDI activity** — proof the box is alive and sending
+- **MIDI MUTE** — lit when the guitar's mode switch is on "Guitar only" (or no
+  guitar is plugged in). Recommended, no longer required: the lever already
+  shows it at the guitar, so this lamp is
+  for whoever is looking at the floor instead
+
+The halos moved to a 74HC595 to free pins for the guitar controls, which leaves
+four spare outputs — enough for the mute lamp and the activity LED that was
+previously cut for lack of a pin. See [`pin_map.md`](pin_map.md).
 
 ## Display
 
