@@ -3,9 +3,10 @@
 #include <Arduino.h>
 
 // --- Strings ---
-constexpr int NUM_STRINGS = 2; // ramping up: 1 -> 2 -> 6
-constexpr int STRING_PINS[NUM_STRINGS] = {A0, A1}; //, A2, A3, A4, A5};
-constexpr int MPE_CHANNELS[NUM_STRINGS] = {2, 3}; //, 4, 5, 6, 7};
+// Index 0 = string 1 = high E (GK pin 1 -> J1 -> A0). See docs/plan.md "13-Pin Interface".
+constexpr int NUM_STRINGS = 6;
+constexpr int STRING_PINS[NUM_STRINGS] = {A0, A1, A2, A3, A4, A5};
+constexpr int MPE_CHANNELS[NUM_STRINGS] = {2, 3, 4, 5, 6, 7};
 
 // --- ADC ---
 constexpr int ADC_RESOLUTION = 12;          // 12-bit (0-4095)
@@ -48,6 +49,14 @@ constexpr float HYSTERESIS_MAX_SEMITONES = 7.0f; // Reject jumps larger than thi
 
 // --- Timing ---
 constexpr uint32_t PITCH_STAGGER_US = 5000; // Run pitch detection every 5ms (one string at a time)
+
+// --- Telemetry (USB MIDI SysEx -> HexScope app, see telemetry.h) ---
+constexpr bool TELEMETRY_ENABLED = true;
+constexpr uint32_t TELEMETRY_PERIOD_MS = 50;  // status frame rate (20 Hz)
+constexpr uint32_t TELEMETRY_CONFIG_MS = 1000; // thresholds re-sent so a late-connecting app picks them up
+constexpr int TELEMETRY_SCOPE_POINTS = 128;
+constexpr int TELEMETRY_SCOPE_DECIMATE = 2;    // 128 points x 2 = 256 samples = 12.8ms, ~1 cycle of low E
+constexpr int TELEMETRY_SCOPES_PER_TICK = 2;   // each string's scope refreshes every 150ms
 
 // --- Debug ---
 constexpr bool DEBUG_SERIAL = true;

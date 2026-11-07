@@ -10,6 +10,7 @@
 #include "onset_detector.h"
 #include "pitch_detector.h"
 #include "midi_output.h"
+#include "telemetry.h"
 
 AdcSampler sampler;
 OnsetDetector onset[NUM_STRINGS];
@@ -17,11 +18,11 @@ PitchDetector pitch[NUM_STRINGS];
 MidiOutput midi[NUM_STRINGS] = {
     MidiOutput(MPE_CHANNELS[0]),
     MidiOutput(MPE_CHANNELS[1]),
-    // MidiOutput(MPE_CHANNELS[2]),
-    // MidiOutput(MPE_CHANNELS[3]),
-    // MidiOutput(MPE_CHANNELS[4]),
-    // MidiOutput(MPE_CHANNELS[5])
-};
+    MidiOutput(MPE_CHANNELS[2]),
+    MidiOutput(MPE_CHANNELS[3]),
+    MidiOutput(MPE_CHANNELS[4]),
+    MidiOutput(MPE_CHANNELS[5])};
+Telemetry telemetry;
 
 // Shared buffers — only one string processed at a time
 int16_t pitchBuffer[YIN_BUFFER_SIZE];
@@ -38,7 +39,8 @@ elapsedMicros pitchTimer;
 elapsedMillis debugTimer;
 
 const char *NOTE_NAMES[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-const char *STRING_NAMES[] = {"E2", "A2", "D3", "G3", "B3", "E4"};
+// Index 0 is string 1, high E (GK standard).
+const char *STRING_NAMES[] = {"E4", "B3", "G3", "D3", "A2", "E2"};
 
 void setup()
 {
@@ -109,6 +111,7 @@ void loop()
 
             sampler.getRecentSamples(s, pitchBuffer, YIN_BUFFER_SIZE);
             PitchResult result = pitch[s].detect(pitchBuffer, YIN_BUFFER_SIZE);
+            telemetry.notePitch(s, result);
 
             if (DEBUG_SERIAL)
             {
@@ -228,7 +231,10 @@ void loop()
         }
     }
 
-    // --- 5. Service USB MIDI ---
+    // --- 5. Diagnostics for the HexScope app ---
+    telemetry.update(sampler, onset, activeNote);
+
+    // --- 6. Service USB MIDI ---
     while (usbMIDI.read())
     {
     }

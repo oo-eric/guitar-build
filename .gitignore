@@ -14,3 +14,7 @@ fp-info-cache
 
 # Upload bundle for an external tool; regenerable, and not the source of truth
 hardware/Archive.zip
+
+# Xcode per-user state
+xcuserdata/
+*.xcuserstate
