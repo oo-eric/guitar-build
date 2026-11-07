@@ -276,7 +276,9 @@ the shell, not on a numbered pin. Everything meets there once: both pot bodies,
 the jack sleeve, the toggle frame, the bridge ground, the Porter ground, the six
 Ubertar grounds and the cavity shield. Shield the cavity with copper tape or
 conductive paint and **bond it at that one point only**; ground it twice and
-the shield is a loop.
+the shield is a loop. That rule is about _wires_: pot bodies and the jack
+touching the shield where they pass through the cavity roof is normal and fine —
+the loop is tiny and inside the shield.
 
 This matters more here than on a normal guitar. Six unbuffered high-impedance
 lines share the cavity with a magnetic pickup running 5–10× hotter, and

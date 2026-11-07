@@ -114,16 +114,32 @@ Tick them off as you go.
 | 20  | TONE pot back          | Star hub                  |                                     |
 | 21  | Jack sleeve            | Star hub                  |                                     |
 | 22  | Bridge ground          | Star hub                  |                                     |
-| 23  | Cavity shield          | Star hub                  | One point only — twice makes a loop |
+| 23  | Cavity shield          | Star hub                  | One wire only. Pots touching it is OK |
 | 24  | Star hub               | 13-pin shell / ground lug | Short and thick                     |
 
 **"50s" tone variant:** move wire 11 so TONE lug 3 goes to VOL lug **2** instead
 of lug 3. It keeps more treble as the volume rolls back. One wire; pick by ear.
 
-**Building the hub:** a ring-terminal solder tag clamped under one of the 13-pin
-socket's mounting screws, or all the grounds twisted and soldered into one
-junction with a single short wire (24) to the socket's ground lug. Either is a
-star.
+**Building the hub:** "star hub" is a job, not a product — nobody sells one
+under that name. Any of these does it:
+
+- **Solder lug** (also sold as _solder tag_, _ground lug_, _terminal lug_): a
+  flat tab with a screw hole and solder holes. Clamp it under one of the 13-pin
+  socket's mounting screws. Match the hole to that screw size.
+- **Uninsulated ring terminal**: sold for crimping, but solders fine. Same
+  screw-size rule. Get the bare-metal kind, not the plastic-sleeved kind.
+- **Tag strip / terminal strip**: a row of solder tags on an insulating strip,
+  if you want more room to land a dozen wires. Use one tag as the hub.
+- **No part at all**: twist the grounds together, solder the bundle, and run
+  one short wire (24) to the socket's ground lug.
+
+All four are a star, as long as each ground arrives on its own wire.
+
+**Shield contact is fine.** The pot bodies and the jack will probably touch the
+shielding wherever they poke through the cavity roof. That is normal — the loop
+it forms is tiny and sits inside the shield. "One point only" means one
+_wire_ (23) from the shield to the hub. Don't add more wires from the shield to
+other places, and don't sand or tape around pots to keep them off it.
 
 ## Before soldering — meter checks
 
