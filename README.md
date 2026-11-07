@@ -21,13 +21,14 @@ passive.
 
 - **Phase 1 (complete):** single-string proof of concept — pickup → buffer → ADC
   → onset detection → YIN pitch detection → MPE MIDI, end-to-end into a DAW.
-- **Phase 2 (current):** modular 6-string firmware written; bringing up channels
-  one at a time on the breadboard. Single string is working end-to-end on the new
-  MCP6002 buffer (no battery). Threshold calibration and per-string gain in
-  progress.
-- **Phase 3 (planned):** pickups into a real guitar body; everything else into a
-  stompbox enclosure, linked by a 13-pin cable. PCB designed and DRC-clean,
-  waiting on a cable test before fabrication.
+- **Phase 2 (current):** modular firmware now runs all six strings. Single string
+  is working end-to-end on the MCP6002 buffer (no battery); threshold calibration
+  and per-string gain in progress. The **HexScope** app shows every string live
+  on an iPhone, iPad or Mac, for checking wiring and comparing changes.
+- **Phase 3 (started):** body and neck arrived 2026-08-08; the hex pickups are
+  wired to the guitar's 13-pin socket but not yet connected to the preamp.
+  Stomp box enclosure still to come. PCB designed and DRC-clean, waiting on a
+  cable test before fabrication.
 - **Future exploration:** an MPU-6050 accelerometer/gyro on the body or neck to
   turn physical gestures (tilt, shake, orientation) into MIDI CC.
 
@@ -40,9 +41,13 @@ flowchart LR
     subgraph G["Guitar (passive)"]
         S["Guitar string"] --> P["77HC hex pickup<br>×6"]
         M["Porter magnetic<br>pickup"]
+        SW["Mode switch<br>Guitar / Mix / MIDI"]
+        GJ["Guitar 1/4&quot; jack<br>(switched)"]
+        M --> SW --> GJ
     end
-    P --> K["13-pin GK cable<br>hex on pins 1-6, magnetic on pin 8"]
-    M --> K
+    P --> K["13-pin GK cable<br>hex 1-6, magnetic 7, MIDI on/off 10"]
+    GJ -- "no plug in" --> K
+    SW -- "MIDI on/off" --> K
     subgraph BOX["Stomp box"]
         B["MCP6002 preamp<br>6ch, 46x, 3.3V from Teensy"]
         ADC["Teensy 4.0<br>A0-A5"]
@@ -53,6 +58,7 @@ flowchart LR
     K --> J["1/4&quot; jack<br>(passive passthrough)"]
     DSP --> DIN["MIDI OUT<br>5-pin DIN"]
     DSP --> USB["USB-C"]
+    GJ -- "plug in" --> AMP
     DIN --> SY["Hardware synth<br>(stage)"]
     USB --> C["Computer / DAW<br>(desk)"]
     J --> AMP["Amp"]
@@ -64,8 +70,9 @@ flowchart LR
 - **Ubertar 77HC** single-string ("hexaphonic") pickups ×6
 - **MCP6002** rail-to-rail op-amps ×3 (dual channel each = 6 buffer/gain stages),
   running on 3.3V from the Teensy — replaced the original TL072 + 9V battery
-- **Porter Pickups** Filtertron-sized humbucker (neck) → 13-pin pin 8 → 1/4" jack
-  for analog tone. Boise-made
+- **Porter Pickups** Filtertron-sized humbucker (neck), Boise-made. Goes out the
+  guitar's own 1/4" jack when a plug is in it, otherwise down 13-pin pin 7 to the
+  stomp box's jack. Wiring of record: [`docs/guitar_wiring.md`](docs/guitar_wiring.md)
 - **Custom PCB** — 82 × 156 mm, 2-layer, all through-hole. Generated from
   scripts, not hand-drawn; see `hardware/` and `scripts/`
 - Breadboard prototype today; the board is designed but not yet fabricated
@@ -89,6 +96,7 @@ Arduino IDE + Teensyduino. Under `firmware/`:
   - `onset_detector.h/.cpp` — RMS-based per-string note on/off state machine
   - `pitch_detector.h/.cpp` — YIN pitch detection with hysteresis
   - `midi_output.h/.cpp` — MPE MIDI output with per-channel pitch bend tracking
+  - `telemetry.h/.cpp` — per-string diagnostics sent as USB MIDI SysEx, for HexScope
   - `guitar_midi.ino` — orchestrator with staggered per-string pitch detection
 
 ### Flashing
@@ -100,15 +108,25 @@ Arduino IDE + Teensyduino. Under `firmware/`:
 4. Upload. The Teensy enumerates as a USB MIDI device — add it as an MPE
    instrument in your DAW.
 
+> **Apple Silicon without Rosetta** (macOS 27): use Teensyduino **1.62 or
+> later**, which ships a native compiler. Arduino's bundled `ctags` is still
+> Intel-only and breaks the `.ino` preprocessing step; see `AGENTS.md` for the
+> current workaround.
+
 > **Power note:** don't power the Teensy via VIN and USB at the same time without
 > cutting the VIN-VUSB trace.
 
 ## Tooling
 
-`scripts/` holds host-side helpers for bring-up and debugging:
-
-- `teensy_serial.py` — serial reader for the Teensy CDC port
-- `guitar_monitor.py` — live monitoring of onset / pitch output
+- **[`app/HexScope/`](app/HexScope/README.md)** — SwiftUI app for iPhone, iPad
+  and Mac. Plug the Teensy into the phone and see each string's level, bias,
+  pitch and waveform, with warnings for clipping, bad bias and swapped wires.
+  Records captures you can compare before and after a change. It reads USB MIDI,
+  because iOS can't open the Teensy's serial port.
+- `scripts/teensy_serial.py` — serial reader for the Teensy CDC port
+- `scripts/guitar_monitor.py` — terminal dashboard of onset / pitch output
+- `scripts/gen_body_template.py`, `headstock_layout.py`, `headstock_preview.py`
+  — body outline and headstock templates
 
 ## Repository layout
 
@@ -117,10 +135,12 @@ firmware/        Teensy sketches
   adc_test/        Phase 1 single-string
   guitar_midi/     Phase 2 modular 6-string (the real one)
   experiments/     parked, not in the signal chain
+app/HexScope/    iPhone / iPad / Mac diagnostics app (xcodegen project)
 hardware/        KiCad schematic + PCB — GENERATED, do not hand-edit
 docs/            build plan, hardware references, circuit + design notes
   stompbox/        enclosure: power, controls, pin map, prior art
-scripts/         KiCad generators + host-side serial/debug tools
+scripts/         KiCad and template generators + host-side serial/debug tools
+body/            body outline and headstock (OpenSCAD, printable template)
 enclosure/       OpenSCAD models (pickup enclosure)
 brainstorm/      concept sketches
 output/          captured stage notes / logs
@@ -133,15 +153,17 @@ AGENTS.md        project instructions for the agent harness
 
 ## Documentation
 
-| Doc                                                          | What's in it                                                     |
-| ------------------------------------------------------------ | ---------------------------------------------------------------- |
-| [`docs/plan.md`](docs/plan.md)                               | Phased build plan, parts list, signal chain, technical notes     |
-| [`docs/guitar_build.md`](docs/guitar_build.md)               | Physical build specs and decisions                               |
-| [`docs/body_shape.md`](docs/body_shape.md)                   | Body outline design (Jazzmaster × Iceman hybrid)                 |
-| [`docs/wood_comparison.md`](docs/wood_comparison.md)         | Body / neck / fretboard tonewood comparison                      |
-| [`docs/pickup_selection.md`](docs/pickup_selection.md)       | Standard magnetic pickup selection (Porter Pickups)              |
-| [`docs/buffer_circuit.md`](docs/buffer_circuit.md)           | **Circuit of record** — schematic, values, BOM, bring-up         |
-| [`docs/stompbox/`](docs/stompbox/README.md)                  | Stomp box: I/O, power, controls, Teensy pin map, prior art       |
-| [`docs/wip.md`](docs/wip.md)                                 | ⚠️ Historical Phase-1 breadboard wiring (TL072 + 9V). Superseded |
-| [`docs/teensy-4.0.md`](docs/teensy-4.0.md)                   | Teensy 4.0 pinout / reference                                    |
-| [`docs/ubertar-77hc-pickup.md`](docs/ubertar-77hc-pickup.md) | Ubertar 77HC pickup reference                                    |
+| Doc                                                              | What's in it                                                     |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [`docs/plan.md`](docs/plan.md)                                   | Phased build plan, parts list, signal chain, technical notes     |
+| [`docs/guitar_build.md`](docs/guitar_build.md)                   | Physical build specs and decisions                               |
+| [`docs/guitar_wiring.md`](docs/guitar_wiring.md)                 | **Guitar wiring of record** — jacks, mode switch, grounding      |
+| [`docs/guitar_wiring_diagram.md`](docs/guitar_wiring_diagram.md) | Bench sheet: diagram, wire list, meter and continuity checks     |
+| [`docs/body_shape.md`](docs/body_shape.md)                       | Body outline design (Jazzmaster × Iceman hybrid)                 |
+| [`docs/wood_comparison.md`](docs/wood_comparison.md)             | Body / neck / fretboard tonewood comparison                      |
+| [`docs/pickup_selection.md`](docs/pickup_selection.md)           | Standard magnetic pickup selection (Porter Pickups)              |
+| [`docs/buffer_circuit.md`](docs/buffer_circuit.md)               | **Circuit of record** — schematic, values, BOM, bring-up         |
+| [`docs/stompbox/`](docs/stompbox/README.md)                      | Stomp box: I/O, power, controls, Teensy pin map, prior art       |
+| [`docs/wip.md`](docs/wip.md)                                     | ⚠️ Historical Phase-1 breadboard wiring (TL072 + 9V). Superseded |
+| [`docs/teensy-4.0.md`](docs/teensy-4.0.md)                       | Teensy 4.0 pinout / reference                                    |
+| [`docs/ubertar-77hc-pickup.md`](docs/ubertar-77hc-pickup.md)     | Ubertar 77HC pickup reference                                    |
