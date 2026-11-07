@@ -41,6 +41,7 @@ A DIY guitar with per-string pickups and a Teensy 4.0 for real-time pitch-to-MID
 
 Expect 5 pre-existing silkscreen-overlap warnings (R10, R13, R16, R20/C13) — cosmetic, not regressions.
 
+- `app/HexScope/` — SwiftUI diagnostics app (iPhone/iPad/Mac). Reads per-string telemetry the firmware sends as **USB MIDI SysEx** (iOS can't open the serial port). Live view and recorded captures that can be compared. xcodegen project; see its README
 - `firmware/adc_test/` — Phase 1 single-string test sketch (Audio library + USB Audio, YIN-based)
 - `firmware/experiments/` — sketches that are **not** part of the MIDI signal chain and are not headed for the pedal. See its `README.md` for why each is parked and what was learned.
   - `graphicstest/` — ILI9341 waveform display (TFT_eSPI + sprites). Bench calibration tool. Parked for two reasons: a 240×200 sprite push costs ~32 ms and stalls six pitch-detection slots, and SPI SCLK (pin 13) noise couples into A0 (pin 14). Both were measured on a breadboard and are worth retesting on the PCB, which has ground pour.
@@ -51,6 +52,7 @@ Expect 5 pre-existing silkscreen-overlap warnings (R10, R13, R16, R20/C13) — c
   - `midi_output.h/.cpp` — MPE MIDI output with pitch bend tracking (per-channel)
   - `onset_detector.h/.cpp` — note on/off state machine (RMS-based, per-string)
   - `pitch_detector.h/.cpp` — YIN pitch detection algorithm with hysteresis
+  - `telemetry.h/.cpp` — diagnostic SysEx for HexScope. Wire format is mirrored in `app/HexScope/Sources/Telemetry.swift`; change both and bump `TELEMETRY_VERSION`
 
 ## Tech Stack
 
@@ -66,6 +68,7 @@ Expect 5 pre-existing silkscreen-overlap warnings (R10, R13, R16, R20/C13) — c
 - Teensy 4.0 uses micro-USB (not USB-C)
 - Do not power Teensy via VIN and USB simultaneously without cutting the VIN-VUSB trace
 - Arduino IDE USB Type must be set to "Serial + MIDI" for Phase 2 firmware
+- **This Mac has no Rosetta.** Teensy core 1.60's compiler is Intel-only, so use core **1.62+**, which has a native arm64 toolchain. Arduino's bundled `ctags` 5.8 is also Intel-only and the .ino preprocessing step fails on it; universal-ctags (brew) doesn't fix that either, because it mangles the generated prototypes. Unresolved as of 2026-11-07
 - `usbMIDI` is only available in `.ino` files or via `#include <usb_midi.h>` in `.cpp` files
 - MCP6002 runs on 3.3V from the Teensy — no battery needed. (Replaced the TL072, which needed 7V+; weak 9V batteries caused distorted output.) Switching TL072@9V → MCP6002@3.3V roughly halves output swing, so onset/offset thresholds had to be rescaled (or gain raised)
 - **Preamp is non-inverting: pickup hot goes to +IN, never -IN.** The gain resistor connects from -IN to the 1.65V bias rail (NOT to the output chain — that shorts), and gain is `1 + Rf/Rg`. The Phase-1 breadboard fed the pickup into -IN, which silently makes the circuit inverting; gain then stops matching the formula and starts tracking pickup impedance. See the reconciliation section of `docs/buffer_circuit.md`.
